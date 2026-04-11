@@ -1,0 +1,14 @@
+#-- make.inc for DAG computer
+DFLAGS    += -DHOWDY
+
+
+HDF5_ROOT    = /cm/shared/apps/hdf5/1.14.4-parallel
+FFTW_ROOT    = /data/groups/comp-astro/digarza/apps/FFTW/fftw-3.3.10-mpi
+MPI_ROOT 	 = ${MPI_HOME}
+
+#-- Compiler and flags for different build type
+CXX                = mpicxx
+CXXFLAGS_OPTIMIZE  = -g -Ofast
+CXXFLAGS_DEBUG     = -g -O0 -Wall
+
+

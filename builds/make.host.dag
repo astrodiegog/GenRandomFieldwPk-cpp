@@ -1,0 +1,10 @@
+#-- make.inc for DAG computer
+DFLAGS    += -DHOWDY
+
+
+#-- Compiler and flags for different build type
+CC               ?= gcc
+CFLAGS_OPTIMIZE ?= -g -Ofast
+CFLAGS_DEBUG    ?= -g -O0 -Wall
+
+
