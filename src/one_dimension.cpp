@@ -61,7 +61,6 @@ extern void run_one_dimension(int global_seed, hid_t grp_1D_id, int Nx, double L
 
 	// Create xi - random field
 	set_random_field_oneD(global_seed, Nx, alloc_local_FFT, &xi_arr_local[0]);
-	printf("ayo\n");
 
 	// Write xi - random field
 	Write_FFTWarr_1Dgroup(grp_1D_id, "xi_arr_local_FFT", dataspace1D_id_local_in_c_FFT, &xi_arr_local[0], local_ni_FFT);

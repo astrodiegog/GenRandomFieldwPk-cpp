@@ -2,8 +2,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <random>
-
 #include <time.h>
 
 #include <mpi.h>
@@ -11,24 +9,21 @@
 #include "params.h"
 #include "one_dimension.h"
 
+int procID;
+
 int main(int argc, char **argv)
 {
 	// Program info
-	int nprocs, procID;
+	int nprocs;
 	MPI_Status status_mpi;
-	MPI_Comm world, rand_receivers;
-	MPI_Group world_group, rand_receivers_group;
-	int rand_generator;
-	int ranks[1];
-	
+
 	char *param_file;
     struct PS_Params ps_params;
 
 	// Call MPI routines & set nprocs and nprocID
     MPI_Init(&argc, &argv);
-	world = MPI_COMM_WORLD;
-    MPI_Comm_size(world, &nprocs);
-    MPI_Comm_rank(world, &procID);
+    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+    MPI_Comm_rank(MPI_COMM_WORLD, &procID);
 
 
 	// Declare info for HDF5 file
@@ -86,7 +81,6 @@ int main(int argc, char **argv)
                 procID, ps_params.ndims, ps_params.Ng, ps_params.Lbox);
 
 	if (ps_params.ndims == 1){
-		printf("alo\n");
         run_one_dimension(global_seed, grp_1D_id, ps_params.Ng, ps_params.Lbox);
     }
 
