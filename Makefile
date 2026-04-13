@@ -26,7 +26,7 @@ OBJS   := $(CPPFILES:%=$(BUILD_DIR)/%.o)
 
 #-- Set default compiler and flags
 CXX               ?= gcc
-CXXFLAGS_OPTIMIZE ?= -g -Ofast
+CXXFLAGS_OPTIMIZE ?= -g -Ofast -std=c++17
 CXXFLAGS_DEBUG    ?= -g -O0 -Wall
 
 BUILD             ?= DEBUG

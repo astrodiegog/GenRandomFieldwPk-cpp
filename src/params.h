@@ -1,3 +1,5 @@
+#include "HDF5_utils.h"
+
 struct PS_Params
 {
     int ndims;
@@ -17,5 +19,4 @@ extern void Parse_Params(char *param_file, struct PS_Params *ps_params);
 /*! Routine to place key-value pairsonto PS_Params struct */
 extern void Parse_Param(char *key, char *value, struct PS_Params *ps_params);
 
-#define MAXLEN 1024
 
