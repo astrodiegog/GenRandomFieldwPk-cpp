@@ -30,6 +30,7 @@ extern void set_random_field_oneD(int global_seed, int Nx, ptrdiff_t alloc_local
 			xi_arr_local[i][0] = normal_dist(eng);
 			xi_arr_local[i][1] = 0.;
 		}
+		printf("--- Rank %d : done generating random numbers \n", procID);
 	}
 
 
@@ -52,7 +53,7 @@ extern void set_random_field_oneD(int global_seed, int Nx, ptrdiff_t alloc_local
 			// grab the number of random numbers requested
 			MPI_Recv(&num_nrand_request, 1, MPI_INT, MPI_ANY_SOURCE, REQUEST, world, &status_mpi);
 
-			printf("--- Rank %d : received request for %d random numbers from %d \n", procID, num_nrand_request, status_mpi.MPI_SOURCE);
+			//printf("--- Rank %d : received request for %d random numbers from %d \n", procID, num_nrand_request, status_mpi.MPI_SOURCE);
 			int dest = status_mpi.MPI_SOURCE;
 			// populate rands if requested
 			if (num_nrand_request > 0) {
@@ -60,7 +61,7 @@ extern void set_random_field_oneD(int global_seed, int Nx, ptrdiff_t alloc_local
 					rand_nums[i] = normal_dist(eng);
 				}
 				MPI_Send(&rand_nums, num_nrand_request, MPI_DOUBLE, status_mpi.MPI_SOURCE, REPLY, world);
-				printf("--- Rank %d : sending reply of %d random numbers to %d \n", procID, num_nrand_request, status_mpi.MPI_SOURCE);
+				//printf("--- Rank %d : sending reply of %d random numbers to %d \n", procID, num_nrand_request, status_mpi.MPI_SOURCE);
 			}
 		}
 	}
@@ -74,7 +75,6 @@ extern void set_random_field_oneD(int global_seed, int Nx, ptrdiff_t alloc_local
 		}
 		MPI_Send(&num_nrand_request, 1, MPI_INT, rand_generator, REQUEST, world);
 		MPI_Comm_rank(rand_receivers, &rand_receiver_id);
-		printf("--- Rank %d (%d) : sending request for %d random numbers \n", procID, rand_receiver_id, num_nrand_request);
 
 		int rand_nums_generated = 0;
 		int indx;
@@ -82,7 +82,6 @@ extern void set_random_field_oneD(int global_seed, int Nx, ptrdiff_t alloc_local
 			// receive random array from random_generator via world communicator
 			MPI_Recv(&rand_nums, num_nrand_request, MPI_DOUBLE, rand_generator, REPLY, world, &status_mpi);
 
-			printf("--- Rank %d (%d) : received reply for %d random numbers \n", procID, rand_receiver_id, num_nrand_request);			
 			for (i = 0; i < num_nrand_request; i++) {
 				indx = rand_nums_generated + i;
 				xi_arr_local[indx][0] = rand_nums[i];
@@ -90,7 +89,6 @@ extern void set_random_field_oneD(int global_seed, int Nx, ptrdiff_t alloc_local
 			}
 		
 			rand_nums_generated += num_nrand_request;
-			printf("--- Rank %d (%d) : we have generated %d / %d random numbers \n", procID, rand_receiver_id, rand_nums_generated, alloc_local);
 			if (rand_nums_generated + CHUNKSIZE < alloc_local ) {
 				num_nrand_request = CHUNKSIZE;
 			}
@@ -100,11 +98,10 @@ extern void set_random_field_oneD(int global_seed, int Nx, ptrdiff_t alloc_local
 			
 			if (num_nrand_request > 0) {
 				MPI_Send(&num_nrand_request, 1, MPI_INT, rand_generator, REQUEST, world);
-				printf("--- Rank %d (%d) : sending request for %d random numbers \n", procID, rand_receiver_id, num_nrand_request);
 			}
 
 		}
-		printf("--- Rank %d (%d) : done requesting random numbers \n", procID, rand_receiver_id);
+		printf("--- Rank %d  : done requesting random numbers from Rank %d \n", procID, rand_generator);
 
 		MPI_Barrier(rand_receivers);
 
@@ -112,15 +109,13 @@ extern void set_random_field_oneD(int global_seed, int Nx, ptrdiff_t alloc_local
 		if (rand_receiver_id == 0) {
 			num_nrand_request = 0;
 			MPI_Send(&num_nrand_request, 1, MPI_INT, rand_generator, REQUEST, world);
-			printf("--- Rank %d (%d) : sending request for %d random numbers \n", procID, rand_receiver_id, num_nrand_request);
+			//printf("--- Rank %d : sending request for %d random numbers \n", procID, num_nrand_request);
 		}
 
-		printf("--- Rank %d (%d) : BARRIER\n ", procID, rand_receiver_id);
 		MPI_Barrier(rand_receivers);
 		MPI_Comm_free(&rand_receivers);
 
 	}
 
-	printf("--- Rank %d : done ! \n ", procID);
 	MPI_Barrier(world);
 }

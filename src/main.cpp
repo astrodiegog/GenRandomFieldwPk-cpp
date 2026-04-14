@@ -42,7 +42,7 @@ int main(int argc, char **argv)
     hsize_t attrs1D[1];
     int Rank = 1;
 
-	std::uint_fast32_t global_seed = 123456;
+	std::uint_fast32_t global_seed = 123456 + 654321;
 	printf("waddup !\n");
 
 #ifdef HOWDY
