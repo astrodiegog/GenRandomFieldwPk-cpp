@@ -17,9 +17,6 @@ extern void Parse_Param(char *key, char *value, struct PS_Params *ps_params)
     else if (!strcmp(key, "Ng")) {
         ps_params->Ng = atoi(value);
     }
-    else if (!strcmp(key, "nkbins")) {
-        ps_params->nkbins = atoi(value);
-    }
 	else if (!strcmp(key, "As")) {
         ps_params->As = (double) atof(value);
     }

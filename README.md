@@ -9,11 +9,13 @@ The parameter file expected for this calculation requires the following fields
 ndims=
 Lbox=
 Ng=
-nkbins=
 As=
 ks=
 ns=
 ```
 
-where `n_dims` specifies the number of dimensions (currently max of three), `Lbox` describes the length (in units of $Mpc/h$) along one dimension, `Ng` specifies the number of cells along a dimension, `nkbins` describes the number of logarithmic k-bins to use in defining $P(k)$, and the form of the power spectrum is fully described by `As`, `ks`, and `ns`.
+where `n_dims` specifies the number of dimensions (currently max of three), `Lbox` describes the length (in units of $Mpc/h$) along one dimension, `Ng` specifies the number of cells along a dimension, and the form of the power spectrum is fully described by `As`, `ks`, and `ns`.
+
+
+
 

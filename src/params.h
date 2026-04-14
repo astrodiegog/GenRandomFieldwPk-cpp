@@ -7,7 +7,6 @@ struct PS_Params
     double Lbox;
     int Ng;
 
-    int nkbins;
     float As, ks, ns;
 
 };
