@@ -4,7 +4,7 @@
 #define REPLY 2
 #define CHUNKSIZE 32
 
-extern void set_random_field_oneD(int global_seed, int Nx, ptrdiff_t alloc_local, fftw_complex *xi_arr_local)
+extern void set_random_field(int global_seed, PS_Params *ps_params,  ptrdiff_t alloc_local, fftw_complex *xi_arr_local)
 {
 	int i;
 
@@ -22,7 +22,8 @@ extern void set_random_field_oneD(int global_seed, int Nx, ptrdiff_t alloc_local
 	rand_generator = 0;
 	std::mt19937 eng(global_seed);
 	float mean = 0.;
-	float stddev = Nx;
+	float variance = pow(ps_params->Ng, ps_params->ndims);
+	float stddev = sqrt(variance);
 	std::normal_distribution<> normal_dist(mean, stddev);
 	if (procID == rand_generator){
 		for (i = 0; i < alloc_local ; i++)
@@ -54,7 +55,6 @@ extern void set_random_field_oneD(int global_seed, int Nx, ptrdiff_t alloc_local
 			MPI_Recv(&num_nrand_request, 1, MPI_INT, MPI_ANY_SOURCE, REQUEST, world, &status_mpi);
 
 			//printf("--- Rank %d : received request for %d random numbers from %d \n", procID, num_nrand_request, status_mpi.MPI_SOURCE);
-			int dest = status_mpi.MPI_SOURCE;
 			// populate rands if requested
 			if (num_nrand_request > 0) {
 				for (i = 0; i < num_nrand_request; i++){

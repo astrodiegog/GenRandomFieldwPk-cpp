@@ -65,6 +65,25 @@ int main(int argc, char **argv)
 	printf("--- Rank %d : Creating a %d-D gaussian random field with %d cells along each dimension with length %.4f Mpc/h \n", 
 				procID, ps_params.ndims, ps_params.Ng, ps_params.Lbox);
 
+	// Make sure we're gucci, aka make sure ks is in range
+	double kFund = 2. * M_PI / ps_params.Lbox;
+	double kNyq = kFund * ps_params.Ng / 2.;
+	double kmax = sqrt(ps_params.ndims) * kNyq;
+	if ( (ps_params.ks < kFund) || (kNyq < ps_params.ks) ) {
+		fprintf(stderr, "--- Rank %d : k-mode ks = %.4e defining value of As is outside range between (kFund,kNyq) = (%.4e , %.4e) \n ", procID, ps_params.ks, kFund, kNyq);
+		return 0;
+	}
+
+	int mags;
+	if ( fabs(ps_params.ns) > 32. / (log10(kmax / kFund)) ) {
+		mags = (int) fabs(ps_params.ns) * (log10(kmax / kFund));
+		fprintf(stderr, "--- Rank %d : spanning >%d orders of magnitude, expect round-off error \n ", procID, mags);
+		return 0;
+	}
+
+	if (procID == 0) {
+		printf("--- Rank %d : As = %.4e, ks = %.4e, ns = %.4e \n", procID, ps_params.As, ps_params.ks, ps_params.ns);
+	}
 
 	// Create file
 	FileName_appendix = std::to_string(procID);
@@ -81,7 +100,7 @@ int main(int argc, char **argv)
                 procID, ps_params.ndims, ps_params.Ng, ps_params.Lbox);
 
 	if (ps_params.ndims == 1){
-        run_one_dimension(global_seed, grp_1D_id, ps_params.Ng, ps_params.Lbox);
+        run_one_dimension(global_seed, grp_1D_id, &ps_params);
     }
 
 

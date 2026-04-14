@@ -1,4 +1,5 @@
 #include "HDF5_utils.h"
+#pragma once
 
 struct PS_Params
 {
