@@ -10,9 +10,9 @@ extern void run_two_dimension(int global_seed, hid_t grp_2D_id, PS_Params *ps_pa
 
 	// Power spectra values
 	double Lbox = ps_params->Lbox;
-	double dx, dy, kmag, variance;
+	double dx, dy, kx2, ky2, kmag, variance;
 
-	int i;
+	int i, j, indx;
 
 	// Declare fftw info
 	ptrdiff_t N0, N1, N1_r2c;
@@ -75,45 +75,57 @@ extern void run_two_dimension(int global_seed, hid_t grp_2D_id, PS_Params *ps_pa
 												 MPI_COMM_WORLD, FFTW_ESTIMATE);
 	
 
-	/*
 	// Fill in k, P(k), T^2(k) info
 	dx = ps_params->Lbox / ps_params->Ng;
+	dy = ps_params->Lbox / ps_params->Ng;
 	double dx_sample = dx / (2. * M_PI);
+	double dy_sample = dy / (2. * M_PI);
 	double l_kmag, l_Pk;
 	double l_ks = log10(ps_params->ks);
 	double l_As = log10(ps_params->As);
-    for (i = 0; i < local_no_FFT; i++) {
-        // Assigning kmodes assumes even number of local_ni 
-        if ( (int) (i + local_i_start_FFT) > (int) ((N0 / 2) - 1) ) {
-            // Negative frequencies 
-            kx_local[i] = -( N0 - (i + local_o_start_FFT)) / (dx_sample * ps_params->Ng);
-        }
-        else {
-            // Positive frequencies
-            kx_local[i] = (i + local_o_start_FFT) / (dx_sample * ps_params->Ng);
-        }
 
-		kmag = sqrt(kx_local[i] * kx_local[i]);
-		
-		if (kmag == 0) {
-			Pk_input_local[i] = 1.e-16;
+	for (i = 0; i < local_n_r; i++) {
+		for (j = 0; j < N1_r2c; j++) {
+			indx = j + i * N1_r2c;
+			
+			// Assigning kmodes assumes even number of local_n_c
+			if ( (int) (i + local_n0_start_r) > (int) ( (N0/2) - 1) ) {
+				// Negative freqs
+				kx_local[indx] = -( N0 - (i + local_n0_start_r)) / (dx * N0);
+			}
+			else {
+				// Positive feqs
+				kx_local[indx] = (i + local_n0_start_r) / (dx * N0);
+			}
+
+			// Positive freqs
+			ky_local[indx] = j / (dy * N1);
+
+			kx2 = kx_local[indx] * kx_local[indx];
+			ky2 = ky_local[indx] * ky_local[indx];
+			kmag = sqrt(kx2 + ky2);
+			if (kmag == 0) {
+				Pk_input_local[indx] = 1.e-16;
+			}
+			else {
+				l_kmag = log10(kmag);
+				l_Pk = l_As + (ps_params->ns) * (l_kmag - l_ks);
+				Pk_input_local[indx] = pow(10, l_Pk);
+			}
+
+			Tk2_input_local[indx] = pow((2. * M_PI / Lbox), ps_params->ndims) * Pk_input_local[indx];
+			
 		}
-		else {
-			l_kmag = log10(kmag);
-			l_Pk = l_As + (ps_params->ns) * (l_kmag - l_ks);
-			Pk_input_local[i] = pow(10, l_Pk);
-		}
-		
-		
-		//printf("--- Rank %d : P(k=%.4e)=%.4e \n", procID, kmag, Pk_input_local[i]);
-		Tk2_input_local[i] = pow((2. * M_PI / Lbox), ps_params->ndims) * Pk_input_local[i];
-		//printf("--- Rank %d : T^2(k=%.4e)=%.4e \n", procID, kmag, Tk2_input_local[i]);
-    }
+	}
+
+
 
 	// Write k , P(k) array
-	Write_HDF5_dataset(grp_1D_id, "kx_local", dataspace1D_id_local_in_c_FFT, &kx_local[0]);
-	Write_HDF5_dataset(grp_1D_id, "Pk_input_local", dataspace1D_id_local_in_c_FFT, &Pk_input_local[0]);
+	Write_HDF5_dataset(grp_2D_id, "kx_local", dataspace2D_id_local_r, &kx_local[0]);
+	Write_HDF5_dataset(grp_2D_id, "ky_local", dataspace2D_id_local_r, &ky_local[0]);
+	Write_HDF5_dataset(grp_2D_id, "Pk_input_local", dataspace2D_id_local_r, &Pk_input_local[0]);
 
+	/*
 	// Step 1 : Create xi - random field
 	set_random_field(global_seed, ps_params, alloc_local_FFT, &xi_local[0]);
 
