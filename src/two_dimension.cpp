@@ -51,7 +51,7 @@ extern void run_two_dimension(int global_seed, hid_t grp_2D_id, PS_Params *ps_pa
     Pk_input_local = (double *) fftw_malloc(sizeof(double) * alloc_local_r);
 	Tk2_input_local = (double *) fftw_malloc(sizeof(double) * alloc_local_r);
 
-    xi_local = (double *) fftw_malloc(sizeof(double) * 2 * alloc_local_r);
+    xi_local = (double *) fftw_malloc(sizeof(double) * 2 * (alloc_local_r - 1));
 
 	kx_local = (double *) fftw_malloc(sizeof(double) * alloc_local_r);
 	ky_local = (double *) fftw_malloc(sizeof(double) * alloc_local_r);
@@ -125,33 +125,40 @@ extern void run_two_dimension(int global_seed, hid_t grp_2D_id, PS_Params *ps_pa
 	Write_HDF5_dataset(grp_2D_id, "ky_local", dataspace2D_id_local_r, &ky_local[0]);
 	Write_HDF5_dataset(grp_2D_id, "Pk_input_local", dataspace2D_id_local_r, &Pk_input_local[0]);
 
-	/*
 	// Step 1 : Create xi - random field
-	set_random_field(global_seed, ps_params, alloc_local_FFT, &xi_local[0]);
+	set_real_random_field(global_seed, ps_params, 2 * alloc_local_r, &xi_local[0]);
 
 	// Write xi - random field
-	Write_FFTWarr_1Dgroup(grp_1D_id, "xi_local", dataspace1D_id_local_in_c_FFT, &xi_local[0], local_ni_FFT);
+	Write_HDF5_dataset(grp_2D_id, "xi_local", dataspace2D_id_local_r_input, &xi_local[0]);
 
 	// Step 2 : Take FFT of xi --> populate xi_k & normalize
-	fftw_execute(plan_FFT_c2c);
+	fftw_execute(plan_FFT_r2c);
 	variance = pow(ps_params->Ng, ps_params->ndims);
 	printf("--- Rank %d : Normalizing xi(k) with variance %f \n", procID, variance);
-	for (i = 0; i < local_no_FFT; i++) {
-        xi_k_c2c_local[i][0] = xi_k_c2c_local[i][0] / variance;
-        xi_k_c2c_local[i][1] = xi_k_c2c_local[i][1] / variance;
+	for (i = 0; i < local_n_r; i++) {
+		for (j = 0; j < N1_r2c; j++) {
+			indx = j + i *  N1_r2c;
+			xi_k_r2c_local[indx][0] = xi_k_r2c_local[indx][0] / variance;
+			xi_k_r2c_local[indx][1] = xi_k_r2c_local[indx][1] / variance;
+		}
     }
 
-	//Write_FFTWarr_1Dgroup(grp_1D_id, "xi_k_local", dataspace1D_id_local_out_c_FFT, &xi_k_c2c_local[0], local_no_FFT);
+	Write_FFTWarr_2Dgroup(grp_2D_id, "xi_k_local", dataspace2D_id_local_r, &xi_k_r2c_local[0], local_n_r, N1_r2c);
 
+	
 	// Step 3 : Apply Transfer Function
-	for (i = 0; i < local_no_FFT; i++) {
-		delta_k_c2c_local[i][0] = xi_k_c2c_local[i][0] * sqrt(Tk2_input_local[i]);
-		delta_k_c2c_local[i][1] = xi_k_c2c_local[i][1] * sqrt(Tk2_input_local[i]);
+	for (i = 0; i < local_n_r; i++) {
+		for (j = 0; j < N1_r2c; j++) {
+			indx = j + i *  N1_r2c;
+			delta_k_r2c_local[indx][0] = xi_k_r2c_local[indx][0] * sqrt(Tk2_input_local[indx]);
+			delta_k_r2c_local[indx][1] = xi_k_r2c_local[indx][1] * sqrt(Tk2_input_local[indx]);
+		}
 	}
 
 	// Write delta_k - power spectrum applied to noise in k-space
-	//Write_FFTWarr_1Dgroup(grp_1D_id, "deltak_local", dataspace1D_id_local_out_c_iFFT, &delta_k_c2c_local[0], local_no_FFT);
+	Write_FFTWarr_2Dgroup(grp_2D_id, "deltak_local", dataspace2D_id_local_r, &delta_k_r2c_local[0], local_n_r, N1_r2c);
 
+	/*
 	// Step 4 : Take iFFT of delta_k --> evaluate delta(m), scale by (1/N)
 	fftw_execute(plan_iFFT_c2c);
 	for (i = 0; i < local_ni_FFT; i++) {
