@@ -8,6 +8,7 @@
 #include "hdf5.h"
 #include "params.h"
 #include "one_dimension.h"
+#include "two_dimension.h"
 
 int procID;
 
@@ -32,17 +33,14 @@ int main(int argc, char **argv)
 	const char *FileName_C;
 
     hid_t file_id;
-    hid_t grp_1D_id;
-    hid_t dataspace1D_id_c;
-    hid_t attrs1D_id;
+    hid_t grp_1D_id, grp_2D_id;
 	herr_t status;
 
 	// Declare array of dimensions
     hsize_t dims1D_c[1];
-    hsize_t attrs1D[1];
     int Rank = 1;
 
-	std::uint_fast32_t global_seed = 123456 + 654321;
+	std::uint_fast32_t global_seed = 123456;
 	printf("waddup !\n");
 
 #ifdef HOWDY
@@ -92,20 +90,24 @@ int main(int argc, char **argv)
 	printf("--- Rank %d : Creating file %s --- \n", procID, FileName_C);
     file_id = H5Fcreate(FileName_C, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 
-
-	// Create group for 1D
-    grp_1D_id = H5Gcreate(file_id, "/OneDimension", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-
 	printf("--- Rank %d : Creating a %d-D gaussian random field with %d cells along each dimension with length %.4f Mpc/h \n",
                 procID, ps_params.ndims, ps_params.Ng, ps_params.Lbox);
 
 	if (ps_params.ndims == 1){
+		// Create group for 1D
+		grp_1D_id = H5Gcreate(file_id, "/OneDimension", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
         run_one_dimension(global_seed, grp_1D_id, &ps_params);
+		status = H5Gclose(grp_1D_id);
     }
+	else if (ps_params.ndims == 2) {
+		// Create group for 2D
+		grp_2D_id = H5Gcreate(file_id, "/TwoDimension", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+		run_two_dimension(global_seed, grp_2D_id, &ps_params);
+		status = H5Gclose(grp_2D_id);
+	}
 
 
 	// Close HDF5 info
-    status = H5Gclose(grp_1D_id);
     status = H5Fclose(file_id);
 
 	MPI_Finalize();
