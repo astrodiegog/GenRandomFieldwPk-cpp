@@ -13,7 +13,7 @@ extern void run_two_dimension(int global_seed, hid_t grp_2D_id, PS_Params *ps_pa
 	double Lbox = ps_params->Lbox;
 	double dx, dy, kx2, ky2, kmag, variance;
 
-	int i, j, indx;
+	int i, i_global, j, indx, nkbins;
 
 	// Declare fftw info
 	ptrdiff_t N0, N1, N1_r2c, N1_r_buff;
@@ -28,11 +28,17 @@ extern void run_two_dimension(int global_seed, hid_t grp_2D_id, PS_Params *ps_pa
 	double *delta_x_c2r_local;
     hid_t dataspace2D_id_local_r, dataspace2D_id_local_r_input;
 
+	// Declare binning arrays
+	long int *ikbin_local;
+	long int *counts_global;
+	double *Pk_bin_global;
+	double *k_bin_global;
 
 	// Grab the amount of data allocated by local_size routines
     N0 = ps_params->Ng;
 	N1 = ps_params->Ng;
 	N1_r2c = N1/2 + 1;
+	nkbins = ceil( sqrt( (N0/2) * (N0/2) + (N1/2) * (N1/2) );
 
 	printf("--- Rank %d : N0 %ld N1 %ld N1_r2c %ld \n", procID, N0, N1, N1_r2c);
 	alloc_local_r = fftw_mpi_local_size_2d(N0, N1_r2c, MPI_COMM_WORLD,
@@ -53,6 +59,9 @@ extern void run_two_dimension(int global_seed, hid_t grp_2D_id, PS_Params *ps_pa
 	dims2D_r_input[1] = 2 * N1_r2c;
 	dataspace2D_id_local_r_input = H5Screate_simple(Rank, dims2D_r_input, NULL);
 	
+	// Create dataspace for binned P(k)
+	dims_binned[0] = counts_gl;
+	dataspace_id_binned = H5Screate_simple(Rank, dims_binned, NULL);
 
 	// Allocate memory
     Pk_input_local = (double *) fftw_malloc(sizeof(double) * alloc_local_r);
@@ -70,6 +79,11 @@ extern void run_two_dimension(int global_seed, hid_t grp_2D_id, PS_Params *ps_pa
 
 	delta_k_calc_r2c_local = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * alloc_local_r);
 	Pk_calc_local = (double *) fftw_malloc(sizeof(double) * alloc_local_r);
+
+	ikbin_local = (long int *) fftw_malloc(sizeof(long int) * alloc_local_r);
+	counts_global = (long int *) fftw_malloc(sizeof(long int) * alloc_local_r);
+	Pk_bin_global = (double *) fftw_malloc(sizeof(double) * alloc_local_r);
+	k_bin_global = (double *) fftw_malloc(sizeof(double) * alloc_local_r);
 
 	// Create plans
 	plan_FFT_r2c = fftw_mpi_plan_dft_r2c_2d(N0, N1, xi_local, xi_k_r2c_local, 
@@ -98,20 +112,25 @@ extern void run_two_dimension(int global_seed, hid_t grp_2D_id, PS_Params *ps_pa
 			// Assigning kmodes assumes even number of local_n_c
 			if ( (int) (i + local_n0_start_r) > (int) ( (N0/2) - 1) ) {
 				// Negative freqs
-				kx_local[indx] = -( N0 - (i + local_n0_start_r)) / (dx_sample * N0);
+				i_global = -( N0 - (i + local_n0_start_r));
 			}
 			else {
 				// Positive feqs
-				kx_local[indx] = (i + local_n0_start_r) / (dx_sample * N0);
+				i_global = (i + local_n0_start_r);
 			}
+
+			kx_local[indx] = i_global / (dx_sample * N0);
 
 			// Positive freqs
 			ky_local[indx] = j / (dy_sample * N1);
+
+			ikbin_local[indx] = floor(sqrt( i_global*i_global + j*j ));
 
 			kx2 = kx_local[indx] * kx_local[indx];
 			ky2 = ky_local[indx] * ky_local[indx];
 			kmag = sqrt(kx2 + ky2);
 			if (kmag == 0) {
+				// Guard against logging zero
 				Pk_input_local[indx] = 1.e-16;
 			}
 			else {
@@ -128,6 +147,7 @@ extern void run_two_dimension(int global_seed, hid_t grp_2D_id, PS_Params *ps_pa
 
 
 	// Write k , P(k) array
+	Write_HDF5_longint_dataset(grp_2D_id, "ikbin_local", dataspace2D_id_local_r, &ikbin_local[0]);
 	Write_HDF5_dataset(grp_2D_id, "kx_local", dataspace2D_id_local_r, &kx_local[0]);
 	Write_HDF5_dataset(grp_2D_id, "ky_local", dataspace2D_id_local_r, &ky_local[0]);
 	Write_HDF5_dataset(grp_2D_id, "Pk_input_local", dataspace2D_id_local_r, &Pk_input_local[0]);
@@ -191,6 +211,18 @@ extern void run_two_dimension(int global_seed, hid_t grp_2D_id, PS_Params *ps_pa
 
 	// Write P(k)
 	Write_HDF5_dataset(grp_2D_id, "Pk_calc_local", dataspace2D_id_local_r, &Pk_calc_local[0]);
+
+	// Bin P(k) by fundamental mode (ikbins_local)
+	//counts_global \ Pk_bin_global \ k_bin_global
+	
+	for (i = 0; i < local_n_r; i++) {
+        for (j = 0; j < N1_r2c; j++) {
+            indx = j + i *  N1_r2c;
+
+			counts[ ikbin_local[indx] ] += 1;
+        }
+    }
+
 }
 
 
