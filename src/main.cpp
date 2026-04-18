@@ -79,9 +79,7 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	if (procID == 0) {
-		printf("--- Rank %d : As = %.4e, ks = %.4e, ns = %.4e \n", procID, ps_params.As, ps_params.ks, ps_params.ns);
-	}
+	printf("--- Rank %d : As = %.4e, ks = %.4e, ns = %.4e \n", procID, ps_params.As, ps_params.ks, ps_params.ns);
 
 	// Create file
 	FileName_appendix = std::to_string(procID);
@@ -92,7 +90,6 @@ int main(int argc, char **argv)
 
 	printf("--- Rank %d : Creating a %d-D gaussian random field with %d cells along each dimension with length %.4f Mpc/h \n",
                 procID, ps_params.ndims, ps_params.Ng, ps_params.Lbox);
-
 	if (ps_params.ndims == 1){
 		// Create group for 1D
 		grp_1D_id = H5Gcreate(file_id, "/OneDimension", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -105,7 +102,6 @@ int main(int argc, char **argv)
 		run_two_dimension(global_seed, grp_2D_id, &ps_params);
 		status = H5Gclose(grp_2D_id);
 	}
-
 
 	// Close HDF5 info
     status = H5Fclose(file_id);

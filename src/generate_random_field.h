@@ -9,4 +9,5 @@ extern int procID;
 
 extern void set_random_field(int global_seed, PS_Params *ps_params, ptrdiff_t alloc_local, fftw_complex *xi_arr_local);
 
-extern void set_real_random_field(int global_seed, PS_Params *ps_params, ptrdiff_t alloc_local, double *xi_arr_local);
+extern void set_real2D_random_field(int global_seed, PS_Params *ps_params, ptrdiff_t local_n0, ptrdiff_t local_n1, double *xi_arr_local);
+
