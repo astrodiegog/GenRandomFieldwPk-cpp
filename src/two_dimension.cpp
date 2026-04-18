@@ -174,31 +174,23 @@ extern void run_two_dimension(int global_seed, hid_t grp_2D_id, PS_Params *ps_pa
 			delta_x_c2r_local[indx] = delta_x_c2r_local[indx] / (N0 * N1);
 		}
 	}
-	/*
-	for (i = 0; i < local_n_r; i++) {
-		for (j = 0; j < N1; j++) {
-			indx = j + i *  N1;
-			delta_x_c2r_local[indx] = delta_x_c2r_local[indx] / (N0 * N1);
-		}
-    }
-	*/
 	
 	// Write delta_x - power spectrum applied to noise
 	Write_HDF5_dataset(grp_2D_id, "deltax_local", dataspace2D_id_local_r_input, &delta_x_c2r_local[0]);
 
-	/*
 	// Reconstruct P(k) from delta_x
-	fftw_execute(plan_FFT_calc_c2c);
+	fftw_execute(plan_FFT_calc_r2c);
 	double Tk2_calc;
-	for (i = 0; i< local_no_FFT; i++) {
-		Tk2_calc = delta_k_calc_c2c_local[i][0] * delta_k_calc_c2c_local[i][0] + delta_k_calc_c2c_local[i][1] * delta_k_calc_c2c_local[i][1];
-		Pk_calc_local[i] = Tk2_calc / pow((2. * M_PI / ps_params->Lbox), ps_params->ndims);
-	}
+	for (i = 0; i < local_n_r; i++) {
+        for (j = 0; j < N1_r2c; j++) {
+            indx = j + i *  N1_r2c;
+			Tk2_calc = delta_k_calc_r2c_local[indx][0] * delta_k_calc_r2c_local[indx][0] + delta_k_calc_r2c_local[indx][1] * delta_k_calc_r2c_local[indx][1];
+      		Pk_calc_local[indx] = Tk2_calc / pow((2. * M_PI / ps_params->Lbox), ps_params->ndims);      
+        }
+    }
 
 	// Write P(k)
-	Write_HDF5_dataset(grp_1D_id, "Pk_calc_local", dataspace1D_id_local_out_c_FFT, &Pk_calc_local[0]);
-	*/
-
+	Write_HDF5_dataset(grp_2D_id, "Pk_calc_local", dataspace2D_id_local_r, &Pk_calc_local[0]);
 }
 
 
