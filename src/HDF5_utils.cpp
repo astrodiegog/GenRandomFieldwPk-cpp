@@ -76,7 +76,7 @@ extern void Write_FFTWarr_2Dgroup(hid_t grp_id, char *arr_prefix, hid_t dataspac
         {
             indx = j + Ny * i;
             FFTW_arr_Real[indx] = FFTW_arr[indx][0];
-            FFTW_arr_Imag[i] = FFTW_arr[indx][1];
+            FFTW_arr_Imag[indx] = FFTW_arr[indx][1];
         }
     }
 
