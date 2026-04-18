@@ -36,3 +36,7 @@ extern void Write_HDF5_double_attribute(hid_t grp_id, char *arr_name, hid_t data
 /* Routine to write double dataset of arr_name to grp_id */
 extern void Write_HDF5_dataset(hid_t grp_id, char *arr_name, hid_t dataspace_id, double *data_arr);
 
+/*! \fn void Write_HDF5_longint_dataset(hid_t, char *, hid_t, long int*) */
+/* Routine to write a long integer dataset of arr_name to grp_id */
+extern void Write_HDF5_longint_dataset(hid_t grp_id, char *arr_name, hid_t dataspace_id, long int *data_arr);
+

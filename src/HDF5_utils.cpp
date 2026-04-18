@@ -25,6 +25,17 @@ extern void Write_HDF5_double_attribute(hid_t grp_id, char *arr_name, hid_t data
     return;
 }
 
+extern void Write_HDF5_longint_dataset(hid_t grp_id, char *arr_name, hid_t dataspace_id, long int *data_arr)
+{
+    hid_t dataset_id;
+    herr_t status;
+
+    dataset_id = H5Dcreate(grp_id, arr_name, H5T_STD_I64BE, dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    status = H5Dwrite(dataset_id, H5T_NATIVE_LONG, H5S_ALL, H5S_ALL, H5P_DEFAULT, data_arr);
+    status = H5Dclose(dataset_id);
+
+    return;
+}
 
 extern void Write_HDF5_dataset(hid_t grp_id, char *arr_name, hid_t dataspace_id, double *data_arr)
 {
