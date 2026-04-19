@@ -87,14 +87,14 @@ extern void run_two_dimension(int global_seed, hid_t grp_2D_id, PS_Params *ps_pa
 	Pk_calc_local = (double *) fftw_malloc(sizeof(double) * alloc_local_r);
 
 	ikbin_local = (long int *) fftw_malloc(sizeof(long int) * alloc_local_r);
-	counts_local = (long int *) fftw_malloc(sizeof(long int) * alloc_local_r);
-	counts_global = (long int *) fftw_malloc(sizeof(long int) * alloc_local_r);
-	Pk_bin_local_sum = (double *) fftw_malloc(sizeof(double) * alloc_local_r);
-	Pk_bin_local_avg = (double *) fftw_malloc(sizeof(double) * alloc_local_r);
-	Pk_bin_global = (double *) fftw_malloc(sizeof(double) * alloc_local_r);
-	k_bin_local_sum = (double *) fftw_malloc(sizeof(double) * alloc_local_r);
-	k_bin_local_avg = (double *) fftw_malloc(sizeof(double) * alloc_local_r);
-	k_bin_global = (double *) fftw_malloc(sizeof(double) * alloc_local_r);
+	counts_local = (long int *) fftw_malloc(sizeof(long int) * nkbins);
+	counts_global = (long int *) fftw_malloc(sizeof(long int) * nkbins);
+	Pk_bin_local_sum = (double *) fftw_malloc(sizeof(double) * nkbins);
+	Pk_bin_local_avg = (double *) fftw_malloc(sizeof(double) * nkbins);
+	Pk_bin_global = (double *) fftw_malloc(sizeof(double) * nkbins);
+	k_bin_local_sum = (double *) fftw_malloc(sizeof(double) * nkbins);
+	k_bin_local_avg = (double *) fftw_malloc(sizeof(double) * nkbins);
+	k_bin_global = (double *) fftw_malloc(sizeof(double) * nkbins);
 
 	// Create plans
 	plan_FFT_r2c = fftw_mpi_plan_dft_r2c_2d(N0, N1, xi_local, xi_k_r2c_local, 
@@ -112,7 +112,6 @@ extern void run_two_dimension(int global_seed, hid_t grp_2D_id, PS_Params *ps_pa
 	dy = ps_params->Lbox / ps_params->Ng;
 	dx_sample = dx / (2. * M_PI);
 	dy_sample = dy / (2. * M_PI);
-	l_kmag, l_Pk;
 	l_ks = log10(ps_params->ks);
 	l_As = log10(ps_params->As);
 
@@ -267,7 +266,12 @@ extern void run_two_dimension(int global_seed, hid_t grp_2D_id, PS_Params *ps_pa
 	Write_HDF5_dataset(grp_2D_id, "k_bin_local", dataspace_id_binned, &k_bin_local_avg[0]);
 
 	// Reduce global counts
-	//MPI_Allreduce
+	//MPI_Allreduce(&counts_local, &counts_global, nkbins, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+	//MPI_Allreduce(&k_bin_local_avg, &k_bin_global, nkbins, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+
+	//Write_HDF5_longint_dataset(grp_2D_id, "counts_global", dataspace_id_binned, &counts_global[0]);
+	
+
 }
 
 
