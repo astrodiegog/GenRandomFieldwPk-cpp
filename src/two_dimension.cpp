@@ -272,20 +272,18 @@ extern void run_two_dimension(int global_seed, hid_t grp_2D_id, PS_Params *ps_pa
 	printf("--- Rank %d : MPI-AllReducing %d bins \n", procID, nkbins);
 	MPI_Allreduce(&counts_local[0], &counts_global[0], nkbins, MPI_LONG, MPI_SUM, MPI_COMM_WORLD);
 	MPI_Allreduce(&k_bin_local_sum[0], &k_bin_global[0], nkbins, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+	 MPI_Allreduce(&Pk_bin_local_sum[0], &Pk_bin_global[0], nkbins, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 	
 	for (i = 0; i < nkbins; i++) {
         if (counts_global[i] != 0) { // Avoid dividing by zero
             k_bin_global[i] /= counts_global[i];
-            //Pk_bin_global[i] /= counts_global[i];
+            Pk_bin_global[i] /= counts_global[i];
         }
-		else {
-			//printf("--- Rank %d : global count 0 at i=%d \n", procID, i);
-		}
     }
 
 	Write_HDF5_longint_dataset(grp_2D_id, "counts_global", dataspace_id_binned, &counts_global[0]);
 	Write_HDF5_dataset(grp_2D_id, "k_bin_global", dataspace_id_binned, &k_bin_global[0]);
-
+	Write_HDF5_dataset(grp_2D_id, "Pk_bin_global", dataspace_id_binned, &Pk_bin_global[0]);
 }
 
 
