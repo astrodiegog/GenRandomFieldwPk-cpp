@@ -36,8 +36,8 @@ extern void run_two_dimension(int global_seed, hid_t grp_2D_id, PS_Params *ps_pa
 	// Declare binning arrays
 	long int *ikbin_local;
 	long int *counts_local, *counts_global;
-	double *Pk_bin_local, *Pk_bin_global;
-	double *k_bin_local, *k_bin_global;
+	double *Pk_bin_local_sum, *Pk_bin_local_avg, *Pk_bin_global;
+	double *k_bin_local_sum, *k_bin_local_avg, *k_bin_global;
 
 	// Grab the amount of data allocated by local_size routines
     N0 = ps_params->Ng;
@@ -89,9 +89,11 @@ extern void run_two_dimension(int global_seed, hid_t grp_2D_id, PS_Params *ps_pa
 	ikbin_local = (long int *) fftw_malloc(sizeof(long int) * alloc_local_r);
 	counts_local = (long int *) fftw_malloc(sizeof(long int) * alloc_local_r);
 	counts_global = (long int *) fftw_malloc(sizeof(long int) * alloc_local_r);
-	Pk_bin_local = (double *) fftw_malloc(sizeof(double) * alloc_local_r);
+	Pk_bin_local_sum = (double *) fftw_malloc(sizeof(double) * alloc_local_r);
+	Pk_bin_local_avg = (double *) fftw_malloc(sizeof(double) * alloc_local_r);
 	Pk_bin_global = (double *) fftw_malloc(sizeof(double) * alloc_local_r);
-	k_bin_local = (double *) fftw_malloc(sizeof(double) * alloc_local_r);
+	k_bin_local_sum = (double *) fftw_malloc(sizeof(double) * alloc_local_r);
+	k_bin_local_avg = (double *) fftw_malloc(sizeof(double) * alloc_local_r);
 	k_bin_global = (double *) fftw_malloc(sizeof(double) * alloc_local_r);
 
 	// Create plans
@@ -242,28 +244,30 @@ extern void run_two_dimension(int global_seed, hid_t grp_2D_id, PS_Params *ps_pa
 
 			indx_bin = ikbin_local[indx]; // index within bins
 
-			counts_global[ indx_bin ] += 1;
-			k_bin_global[ indx_bin ] += kmag_local[indx];
-			Pk_bin_global[ indx_bin ] += Pk_calc_local[indx];
+			counts_local[ indx_bin ] += 1;
+			k_bin_local_sum[ indx_bin ] += kmag_local[indx];
+			Pk_bin_local_sum[ indx_bin ] += Pk_calc_local[indx];
         }
     }
 
 	// Define binned k, P(k) values in this process
 	for (i = 0; i < nkbins; i++) {
-		if (counts_global[i] == 0) { // Avoid dividing by zero
-			counts_global[i] = 1;
+		if (counts_local[i] == 0) { // Avoid dividing by zero
+			counts_local[i] = 1;
 		}
-		counts_local[i] = counts_global[i];
-		k_bin_local[i] = k_bin_global[i] / counts_global[i];
-		Pk_bin_local[i] = Pk_bin_global[i] / counts_global[i];
+		k_bin_local_avg[i] = k_bin_local_sum[i] / counts_local[i];
+		Pk_bin_local_avg[i] = Pk_bin_local_sum[i] / counts_local[i];
 	}
 
 
 	// Write local bin info
 	Write_HDF5_longint_dataset(grp_2D_id, "ikbin_local", dataspace2D_id_local_r, &ikbin_local[0]);
 	Write_HDF5_longint_dataset(grp_2D_id, "counts_local", dataspace_id_binned, &counts_local[0]);
-	Write_HDF5_dataset(grp_2D_id, "Pk_bin_local", dataspace_id_binned, &Pk_bin_local[0]);
-	Write_HDF5_dataset(grp_2D_id, "k_bin_local", dataspace_id_binned, &k_bin_local[0]);
+	Write_HDF5_dataset(grp_2D_id, "Pk_bin_local", dataspace_id_binned, &Pk_bin_local_avg[0]);
+	Write_HDF5_dataset(grp_2D_id, "k_bin_local", dataspace_id_binned, &k_bin_local_avg[0]);
+
+	// Reduce global counts
+	//MPI_Allreduce
 }
 
 
