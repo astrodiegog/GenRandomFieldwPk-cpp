@@ -11,3 +11,6 @@ extern void set_random_field(int global_seed, PS_Params *ps_params, ptrdiff_t al
 
 extern void set_real2D_random_field(int global_seed, PS_Params *ps_params, ptrdiff_t local_n0, ptrdiff_t local_n1, double *xi_arr_local);
 
+extern void set_real3D_random_field(int global_seed, PS_Params *ps_params, ptrdiff_t local_n0, ptrdiff_t local_n1, ptrdiff_t local_n2, double *xi_arr_local);
+
+

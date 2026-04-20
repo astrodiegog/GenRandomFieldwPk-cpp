@@ -192,14 +192,14 @@ extern void run_three_dimension(int global_seed, hid_t grp_3D_id, PS_Params *ps_
 	Write_HDF5_dataset(grp_3D_id, "Pk_input_local", dataspace3D_id_local_r, &Pk_input_local[0]);
 
 
-	/*
 	// Step 1 : Create xi - random field
-	printf("--- Rank %d : Requesting %ld random numbers \n", procID, local_n_r * N1_r2c);
-	set_real2D_random_field(global_seed, ps_params, local_n_r, N1, &xi_local[0]);
+	printf("--- Rank %d : Requesting %ld random numbers \n", procID, local_n_r * N1 * N2_r2c);
+	set_real3D_random_field(global_seed, ps_params, local_n_r, N1, N2, &xi_local[0]);
 
 	// Write xi - random field
-	Write_HDF5_dataset(grp_2D_id, "xi_local", dataspace2D_id_local_r_input, &xi_local[0]);
+	Write_HDF5_dataset(grp_3D_id, "xi_local", dataspace3D_id_local_r_input, &xi_local[0]);
 
+	/*
 	// Step 2 : Take FFT of xi --> populate xi_k & normalize
 	fftw_execute(plan_FFT_r2c);
 	variance = pow(ps_params->Ng, ps_params->ndims);
