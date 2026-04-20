@@ -241,21 +241,25 @@ extern void run_three_dimension(int global_seed, hid_t grp_3D_id, PS_Params *ps_
 	// Write delta_x - power spectrum applied to noise
 	Write_HDF5_dataset(grp_3D_id, "deltax_local", dataspace3D_id_local_r_input, &delta_x_c2r_local[0]);
 
-	/*
+	
 	// Reconstruct P(k) from delta_x
 	fftw_execute(plan_FFT_calc_r2c);
 	double Tk2_calc;
 	for (i = 0; i < local_n_r; i++) {
-        for (j = 0; j < N1_r2c; j++) {
-            indx = j + i *  N1_r2c;
-			Tk2_calc = delta_k_calc_r2c_local[indx][0] * delta_k_calc_r2c_local[indx][0] + delta_k_calc_r2c_local[indx][1] * delta_k_calc_r2c_local[indx][1];
-      		Pk_calc_local[indx] = Tk2_calc / pow((2. * M_PI / ps_params->Lbox), ps_params->ndims);      
+        for (j = 0; j < N1; j++) {
+            for (k = 0; k < N2_r2c; k++) {
+                indx = (j + i * N1) * N2_r2c + k;
+				Tk2_calc = delta_k_r2c_local[indx][0] * delta_k_r2c_local[indx][0] + delta_k_r2c_local[indx][1] * delta_k_r2c_local[indx][1];
+				Pk_calc_local[indx] = Tk2_calc / pow((2. * M_PI / ps_params->Lbox), ps_params->ndims);
+            }
         }
     }
 
-	// Write P(k)
-	Write_HDF5_dataset(grp_2D_id, "Pk_calc_local", dataspace2D_id_local_r, &Pk_calc_local[0]);
 
+	// Write P(k)
+	Write_HDF5_dataset(grp_3D_id, "Pk_calc_local", dataspace3D_id_local_r, &Pk_calc_local[0]);
+
+	/*
 	// Bin P(k) by fundamental mode (ikbins_local)
 	//counts_global \ Pk_bin_global \ k_bin_global
 	printf("--- Rank %d : binning P(k) into %d bins of deltak = kfund = %.4e \n", procID, nkbins, (2. * M_PI) / ps_params->Lbox);
