@@ -22,6 +22,10 @@ extern void Write_FFTWarr_1Dgroup(hid_t grp_id, char *arr_prefix, hid_t dataspac
 /* Routine to write Real&Imaginary array of fftw_complex with size Nx,Ny */
 extern void Write_FFTWarr_2Dgroup(hid_t grp_id, char *arr_prefix, hid_t dataspace_id, fftw_complex *FFTW_arr, int Nx, int Ny);
 
+/* \fn void Write_FFTWarr_3Dgroup(hid_t, char *, hid_t, fftw_complex *, int, int, int) */
+/* Routine to write Real&Imaginary array of fftw_complex with size Nx,Ny,Nz */
+extern void Write_FFTWarr_3Dgroup(hid_t grp_id, char *arr_prefix, hid_t dataspace_id, fftw_complex *FFTW_arr, int Nx, int Ny, int Nz);
+
 
 /* \fn void Write_HDF5_int_attribute(hid_t, char *, hid_t, int *) */
 /* Routine to write array of ints as attribute */

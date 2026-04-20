@@ -103,3 +103,33 @@ extern void Write_FFTWarr_2Dgroup(hid_t grp_id, char *arr_prefix, hid_t dataspac
     return;
 }
 
+extern void Write_FFTWarr_3Dgroup(hid_t grp_id, char *arr_prefix, hid_t dataspace_id, fftw_complex *FFTW_arr, int Nx, int Ny, int Nz)
+{
+    int i, j, k, indx;
+    double FFTW_arr_Real[Nx * Ny * Nz], FFTW_arr_Imag[Nx * Ny * Nz];
+    char realarr_name[MAXLEN], imagarr_name[MAXLEN];
+
+    for (i = 0; i < Nx; i++) {
+        for (j = 0; j < Ny; j++) {
+			for (k = 0; k < Nz; k++) {
+		 		//indx = j + Ny * i;
+				indx = (j + i * Ny) * Nz + k;
+				FFTW_arr_Real[indx] = FFTW_arr[indx][0];
+				FFTW_arr_Imag[indx] = FFTW_arr[indx][1];
+			}
+        }
+    }
+
+    strcpy(realarr_name, arr_prefix);
+    strcpy(imagarr_name, arr_prefix);
+
+    strcat(realarr_name, "_Real");
+    strcat(imagarr_name, "_Imag");
+
+    Write_HDF5_dataset(grp_id, realarr_name, dataspace_id, &FFTW_arr_Real[0]);
+    Write_HDF5_dataset(grp_id, imagarr_name, dataspace_id, &FFTW_arr_Imag[0]);
+
+    return;
+}
+
+
