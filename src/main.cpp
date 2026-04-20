@@ -9,6 +9,7 @@
 #include "params.h"
 #include "one_dimension.h"
 #include "two_dimension.h"
+#include "three_dimension.h"
 
 int procID;
 
@@ -33,12 +34,8 @@ int main(int argc, char **argv)
 	const char *FileName_C;
 
     hid_t file_id;
-    hid_t grp_1D_id, grp_2D_id;
+    hid_t grp_1D_id, grp_2D_id, grp_3D_id;
 	herr_t status;
-
-	// Declare array of dimensions
-    hsize_t dims1D_c[1];
-    int Rank = 1;
 
 	std::uint_fast32_t global_seed = 123456;
 	printf("waddup !\n");
@@ -101,6 +98,12 @@ int main(int argc, char **argv)
 		grp_2D_id = H5Gcreate(file_id, "/TwoDimension", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 		run_two_dimension(global_seed, grp_2D_id, &ps_params);
 		status = H5Gclose(grp_2D_id);
+	}
+	else if (ps_params.ndims == 3) {
+		// Create group for 3D
+		grp_3D_id = H5Gcreate(file_id, "/TwoDimension", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+		run_three_dimension(global_seed, grp_3D_id, &ps_params);
+		status = H5Gclose(grp_3D_id);
 	}
 
 	// Close HDF5 info
