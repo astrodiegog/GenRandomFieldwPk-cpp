@@ -122,10 +122,6 @@ extern void run_three_dimension(int global_seed, hid_t grp_3D_id, PS_Params *ps_
 	dy_sample = dy / (2. * M_PI);
 	dz_sample = dz / (2. * M_PI);
 
-	dx_sample = 1. / ps_params->Ng;
-	dy_sample = 1. / ps_params->Ng;
-	dz_sample = 1. / ps_params->Ng;
-
 	l_ks = log10(ps_params->ks);
 	l_As = log10(ps_params->As);
 
