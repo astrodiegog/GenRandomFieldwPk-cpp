@@ -195,21 +195,23 @@ extern void run_three_dimension(int global_seed, hid_t grp_3D_id, PS_Params *ps_
 	// Write xi - random field
 	Write_HDF5_dataset(grp_3D_id, "xi_local", dataspace3D_id_local_r_input, &xi_local[0]);
 
-	/*
 	// Step 2 : Take FFT of xi --> populate xi_k & normalize
 	fftw_execute(plan_FFT_r2c);
 	variance = pow(ps_params->Ng, ps_params->ndims);
 	printf("--- Rank %d : Normalizing xi(k) with variance %.0f \n", procID, variance);
 	for (i = 0; i < local_n_r; i++) {
-		for (j = 0; j < N1_r2c; j++) {
-			indx = j + i *  N1_r2c;
-			xi_k_r2c_local[indx][0] = xi_k_r2c_local[indx][0] / variance;
-			xi_k_r2c_local[indx][1] = xi_k_r2c_local[indx][1] / variance;
+        for (j = 0; j < N1; j++) {
+            for (k = 0; k < N2_r2c; k++) {
+                indx = (j + i * N1) * N2_r2c + k;
+				xi_k_r2c_local[indx][0] = xi_k_r2c_local[indx][0] / variance;
+				xi_k_r2c_local[indx][1] = xi_k_r2c_local[indx][1] / variance;
+			}
 		}
-    }
+	}
 
-	Write_FFTWarr_2Dgroup(grp_2D_id, "xi_k_local", dataspace2D_id_local_r, &xi_k_r2c_local[0], local_n_r, N1_r2c);
+	Write_FFTWarr_3Dgroup(grp_3D_id, "xi_k_local", dataspace3D_id_local_r, &xi_k_r2c_local[0], local_n_r, N1, N2_r2c);
 
+	/*
 	// Step 3 : Apply Transfer Function
 	for (i = 0; i < local_n_r; i++) {
 		for (j = 0; j < N1_r2c; j++) {
