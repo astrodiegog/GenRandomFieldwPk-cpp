@@ -259,33 +259,42 @@ extern void run_three_dimension(int global_seed, hid_t grp_3D_id, PS_Params *ps_
 	// Write P(k)
 	Write_HDF5_dataset(grp_3D_id, "Pk_calc_local", dataspace3D_id_local_r, &Pk_calc_local[0]);
 
-	/*
 	// Bin P(k) by fundamental mode (ikbins_local)
 	//counts_global \ Pk_bin_global \ k_bin_global
 	printf("--- Rank %d : binning P(k) into %d bins of deltak = kfund = %.4e \n", procID, nkbins, (2. * M_PI) / ps_params->Lbox);
+
 	for (i = 0; i < local_n_r; i++) {
-        for (j = 0; j < N1_r2c; j++) {
-            indx = j + i *  N1_r2c;
+        for (j = 0; j < N1; j++) {
+            for (k = 0; k < N2_r2c; k++) {
+				indx = (j + i * N1) * N2_r2c + k;
 
-			// Assigning kmodes assumes even number of local_n_c
-			if ( (int) (i + local_n0_start_r) > (int) ( (N0/2) - 1) ) {
-                // Negative freqs
-				i_global = -( N0 - (i + local_n0_start_r));
+				// Assigning kmodes assumes even number of local_n_c
+				if ( (int) (i + local_n0_start_r) > (int) ( (N0/2) - 1) ) { // Negative freqs
+					i_global = -( N0 - (i + local_n0_start_r));
+				}
+				else { // Positive feqs
+					i_global = (i + local_n0_start_r);
+				}
+
+				if ( j > (int) ( (N1/2) - 1) ) { // Negative freqs
+					j_global = -( N1 - j);
+				}
+				else { // Positive freqs
+					j_global = j;
+				}
+
+				indx_bin = floor( sqrt( i_global*i_global + j_global*j_global + k*k )); 
+
+				ikbin_local[indx] = indx_bin; //index within bins
+
+				counts_local[ indx_bin ] += 1;
+				k_bin_local_sum[ indx_bin ] += kmag_local[ indx ];
+				Pk_bin_local_sum[ indx_bin ] += Pk_calc_local[ indx ];
+
             }
-            else {
-                // Positive feqs
-				i_global = (i + local_n0_start_r);
-            }
-
-			ikbin_local[indx] = floor(sqrt( i_global*i_global + j*j ));
-
-			indx_bin = ikbin_local[indx]; // index within bins
-
-			counts_local[ indx_bin ] += 1;
-			k_bin_local_sum[ indx_bin ] += kmag_local[indx];
-			Pk_bin_local_sum[ indx_bin ] += Pk_calc_local[indx];
         }
     }
+
 
 	// Define averaged binned k, P(k) values in this process
 	for (i = 0; i < nkbins; i++) {
@@ -301,11 +310,12 @@ extern void run_three_dimension(int global_seed, hid_t grp_3D_id, PS_Params *ps_
 
 
 	// Write local bin info
-	Write_HDF5_longint_dataset(grp_2D_id, "ikbin_local", dataspace2D_id_local_r, &ikbin_local[0]);
-	Write_HDF5_longint_dataset(grp_2D_id, "counts_local", dataspace_id_binned, &counts_local[0]);
-	Write_HDF5_dataset(grp_2D_id, "Pk_bin_local", dataspace_id_binned, &Pk_bin_local_avg[0]);
-	Write_HDF5_dataset(grp_2D_id, "k_bin_local", dataspace_id_binned, &k_bin_local_avg[0]);
+	Write_HDF5_longint_dataset(grp_3D_id, "ikbin_local", dataspace3D_id_local_r, &ikbin_local[0]);
+	Write_HDF5_longint_dataset(grp_3D_id, "counts_local", dataspace_id_binned, &counts_local[0]);
+	Write_HDF5_dataset(grp_3D_id, "Pk_bin_local", dataspace_id_binned, &Pk_bin_local_avg[0]);
+	Write_HDF5_dataset(grp_3D_id, "k_bin_local", dataspace_id_binned, &k_bin_local_avg[0]);
 
+	/*
 	// Reduce global counts, Reduce k&P(k), Normalize by count
 	printf("--- Rank %d : MPI-AllReducing %d bins \n", procID, nkbins);
 	MPI_Allreduce(&counts_local[0], &counts_global[0], nkbins, MPI_LONG, MPI_SUM, MPI_COMM_WORLD);
