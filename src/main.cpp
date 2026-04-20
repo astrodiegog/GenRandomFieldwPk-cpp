@@ -101,7 +101,7 @@ int main(int argc, char **argv)
 	}
 	else if (ps_params.ndims == 3) {
 		// Create group for 3D
-		grp_3D_id = H5Gcreate(file_id, "/TwoDimension", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+		grp_3D_id = H5Gcreate(file_id, "/ThreeDimension", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 		run_three_dimension(global_seed, grp_3D_id, &ps_params);
 		status = H5Gclose(grp_3D_id);
 	}
