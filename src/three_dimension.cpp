@@ -226,19 +226,22 @@ extern void run_three_dimension(int global_seed, hid_t grp_3D_id, PS_Params *ps_
 	// Write delta_k - power spectrum applied to noise in k-space
 	Write_FFTWarr_3Dgroup(grp_3D_id, "deltak_local", dataspace3D_id_local_r, &delta_k_r2c_local[0], local_n_r, N1, N2_r2c);
 
-	/*
 	// Step 4 : Take iFFT of delta_k --> evaluate delta(m), scale by (1/N)
 	fftw_execute(plan_iFFT_c2r);
-	for (i = 0; i < local_n_r; i++) {
- 		for (j = 0; j < N1; j++) {
-			indx = j + i * 2*N1_r2c;
-			delta_x_c2r_local[indx] = delta_x_c2r_local[indx] / (N0 * N1);
+
+	for (i = 0; i < local_n_r ; i++) {
+	 	for (j = 0; j < N1 ; j++) {
+ 			for (k = 0; k < N2; k++) {
+				indx = (j + i * N1) * (2*N2_r2c) + k;
+				delta_x_c2r_local[indx] = delta_x_c2r_local[indx] / (N0 * N1 * N2);
+			}
 		}
 	}
-	
-	// Write delta_x - power spectrum applied to noise
-	Write_HDF5_dataset(grp_2D_id, "deltax_local", dataspace2D_id_local_r_input, &delta_x_c2r_local[0]);
 
+	// Write delta_x - power spectrum applied to noise
+	Write_HDF5_dataset(grp_3D_id, "deltax_local", dataspace3D_id_local_r_input, &delta_x_c2r_local[0]);
+
+	/*
 	// Reconstruct P(k) from delta_x
 	fftw_execute(plan_FFT_calc_r2c);
 	double Tk2_calc;
