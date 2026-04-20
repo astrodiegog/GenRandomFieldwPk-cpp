@@ -114,6 +114,13 @@ extern void run_three_dimension(int global_seed, hid_t grp_3D_id, PS_Params *ps_
 												 MPI_COMM_WORLD, FFTW_ESTIMATE);
 	
 
+	// Initialize to zeros
+	for (i = 0; i < nkbins; i++) {
+		counts_local[i] = 0;
+		Pk_bin_local_sum[i] = 0.;
+		k_bin_local_sum[i] = 0.;
+    }
+
 	// Fill in k, P(k), T^2(k) info
 	dx = ps_params->Lbox / ps_params->Ng;
 	dy = ps_params->Lbox / ps_params->Ng;
@@ -263,6 +270,7 @@ extern void run_three_dimension(int global_seed, hid_t grp_3D_id, PS_Params *ps_
 	//counts_global \ Pk_bin_global \ k_bin_global
 	printf("--- Rank %d : binning P(k) into %d bins of deltak = kfund = %.4e \n", procID, nkbins, (2. * M_PI) / ps_params->Lbox);
 
+
 	for (i = 0; i < local_n_r; i++) {
         for (j = 0; j < N1; j++) {
             for (k = 0; k < N2_r2c; k++) {
@@ -286,7 +294,6 @@ extern void run_three_dimension(int global_seed, hid_t grp_3D_id, PS_Params *ps_
 				indx_bin = floor( sqrt( i_global*i_global + j_global*j_global + k*k )); 
 
 				ikbin_local[indx] = indx_bin; //index within bins
-
 				counts_local[ indx_bin ] += 1;
 				k_bin_local_sum[ indx_bin ] += kmag_local[ indx ];
 				Pk_bin_local_sum[ indx_bin ] += Pk_calc_local[ indx ];
@@ -315,12 +322,12 @@ extern void run_three_dimension(int global_seed, hid_t grp_3D_id, PS_Params *ps_
 	Write_HDF5_dataset(grp_3D_id, "Pk_bin_local", dataspace_id_binned, &Pk_bin_local_avg[0]);
 	Write_HDF5_dataset(grp_3D_id, "k_bin_local", dataspace_id_binned, &k_bin_local_avg[0]);
 
-	/*
+
 	// Reduce global counts, Reduce k&P(k), Normalize by count
 	printf("--- Rank %d : MPI-AllReducing %d bins \n", procID, nkbins);
 	MPI_Allreduce(&counts_local[0], &counts_global[0], nkbins, MPI_LONG, MPI_SUM, MPI_COMM_WORLD);
 	MPI_Allreduce(&k_bin_local_sum[0], &k_bin_global[0], nkbins, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-	 MPI_Allreduce(&Pk_bin_local_sum[0], &Pk_bin_global[0], nkbins, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+	MPI_Allreduce(&Pk_bin_local_sum[0], &Pk_bin_global[0], nkbins, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 	
 	for (i = 0; i < nkbins; i++) {
         if (counts_global[i] != 0) { // Avoid dividing by zero
@@ -329,10 +336,9 @@ extern void run_three_dimension(int global_seed, hid_t grp_3D_id, PS_Params *ps_
         }
     }
 
-	Write_HDF5_longint_dataset(grp_2D_id, "counts_global", dataspace_id_binned, &counts_global[0]);
-	Write_HDF5_dataset(grp_2D_id, "k_bin_global", dataspace_id_binned, &k_bin_global[0]);
-	Write_HDF5_dataset(grp_2D_id, "Pk_bin_global", dataspace_id_binned, &Pk_bin_global[0]);
-	*/
+	Write_HDF5_longint_dataset(grp_3D_id, "counts_global", dataspace_id_binned, &counts_global[0]);
+	Write_HDF5_dataset(grp_3D_id, "k_bin_global", dataspace_id_binned, &k_bin_global[0]);
+	Write_HDF5_dataset(grp_3D_id, "Pk_bin_global", dataspace_id_binned, &Pk_bin_global[0]);
 }
 
 
