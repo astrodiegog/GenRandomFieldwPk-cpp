@@ -211,20 +211,22 @@ extern void run_three_dimension(int global_seed, hid_t grp_3D_id, PS_Params *ps_
 
 	Write_FFTWarr_3Dgroup(grp_3D_id, "xi_k_local", dataspace3D_id_local_r, &xi_k_r2c_local[0], local_n_r, N1, N2_r2c);
 
-	/*
+	
 	// Step 3 : Apply Transfer Function
 	for (i = 0; i < local_n_r; i++) {
-		for (j = 0; j < N1_r2c; j++) {
-			indx = j + i *  N1_r2c;
-			delta_k_r2c_local[indx][0] = xi_k_r2c_local[indx][0] * sqrt(Tk2_input_local[indx]);
-			delta_k_r2c_local[indx][1] = xi_k_r2c_local[indx][1] * sqrt(Tk2_input_local[indx]);
-		}
-	}
-
-	// Write delta_k - power spectrum applied to noise in k-space
-	Write_FFTWarr_2Dgroup(grp_2D_id, "deltak_local", dataspace2D_id_local_r, &delta_k_r2c_local[0], local_n_r, N1_r2c);
-
+        for (j = 0; j < N1; j++) {
+            for (k = 0; k < N2_r2c; k++) {
+                indx = (j + i * N1) * N2_r2c + k;
+				delta_k_r2c_local[indx][0] = xi_k_r2c_local[indx][0] * sqrt(Tk2_input_local[indx]);
+				delta_k_r2c_local[indx][1] = xi_k_r2c_local[indx][1] * sqrt(Tk2_input_local[indx]);
+            }
+        }
+    }
 	
+	// Write delta_k - power spectrum applied to noise in k-space
+	Write_FFTWarr_3Dgroup(grp_3D_id, "deltak_local", dataspace3D_id_local_r, &delta_k_r2c_local[0], local_n_r, N1, N2_r2c);
+
+	/*
 	// Step 4 : Take iFFT of delta_k --> evaluate delta(m), scale by (1/N)
 	fftw_execute(plan_iFFT_c2r);
 	for (i = 0; i < local_n_r; i++) {
