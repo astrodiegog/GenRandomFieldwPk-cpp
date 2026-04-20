@@ -172,7 +172,7 @@ extern void run_two_dimension(int global_seed, hid_t grp_2D_id, PS_Params *ps_pa
 	// Step 2 : Take FFT of xi --> populate xi_k & normalize
 	fftw_execute(plan_FFT_r2c);
 	variance = pow(ps_params->Ng, ps_params->ndims);
-	printf("--- Rank %d : Normalizing xi(k) with variance %f \n", procID, variance);
+	printf("--- Rank %d : Normalizing xi(k) with variance %.0f \n", procID, variance);
 	for (i = 0; i < local_n_r; i++) {
 		for (j = 0; j < N1_r2c; j++) {
 			indx = j + i *  N1_r2c;
