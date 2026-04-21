@@ -2,7 +2,7 @@
 
 #define REQUEST 1
 #define REPLY 2
-#define CHUNKSIZE 32
+#define CHUNKSIZE 128
 
 extern void set_random_field(int global_seed, PS_Params *ps_params,  ptrdiff_t alloc_local, fftw_complex *xi_arr_local)
 {
