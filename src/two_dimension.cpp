@@ -3,7 +3,7 @@
 #include "generate_random_field.h"
 
 
-extern void run_two_dimension(int global_seed, hid_t grp_2D_id, PS_Params *ps_params)
+extern void run_two_dimension(hid_t grp_2D_id, PS_Params *ps_params)
 {
 	// Declare array of dimensions for datasets
     int Rank = 2;
@@ -164,7 +164,7 @@ extern void run_two_dimension(int global_seed, hid_t grp_2D_id, PS_Params *ps_pa
 
 	// Step 1 : Create xi - random field
 	printf("--- Rank %d : Requesting %ld random numbers \n", procID, local_n_r * N1_r2c);
-	set_real2D_random_field(global_seed, ps_params, local_n_r, N1, &xi_local[0]);
+	set_real2D_random_field(ps_params, local_n_r, N1, &xi_local[0]);
 
 	// Write xi - random field
 	Write_HDF5_dataset(grp_2D_id, "xi_local", dataspace2D_id_local_r_input, &xi_local[0]);

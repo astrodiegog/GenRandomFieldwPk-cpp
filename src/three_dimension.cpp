@@ -5,7 +5,7 @@
 #include "generate_random_field.h"
 
 
-extern void run_three_dimension(int global_seed, hid_t grp_3D_id, PS_Params *ps_params)
+extern void run_three_dimension(hid_t grp_3D_id, PS_Params *ps_params)
 {
 	// Declare array of dimensions for datasets
     int Rank = 3;
@@ -222,7 +222,7 @@ extern void run_three_dimension(int global_seed, hid_t grp_3D_id, PS_Params *ps_
 
 	// Step 1 : Create xi - random field
 	printf("--- Rank %d : Requesting %ld random numbers \n", procID, local_n_r * N1 * N2_r2c);
-	set_real3D_random_field(global_seed, ps_params, local_n_r, N1, N2, &xi_local[0]);
+	set_real3D_random_field(ps_params, local_n_r, N1, N2, &xi_local[0]);
 
 	gettimeofday(&t_end, NULL);
     time_elapsed_us = (t_end.tv_sec - t_start.tv_sec) * 1.e6;

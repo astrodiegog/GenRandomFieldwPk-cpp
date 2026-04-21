@@ -3,6 +3,8 @@
 
 struct PS_Params
 {
+	std::uint_fast32_t seed;
+
     int ndims;
     double Lbox;
     int Ng;

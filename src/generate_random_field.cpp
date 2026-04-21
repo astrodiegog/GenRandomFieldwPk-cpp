@@ -4,7 +4,7 @@
 #define REPLY 2
 #define CHUNKSIZE 128
 
-extern void set_random_field(int global_seed, PS_Params *ps_params,  ptrdiff_t alloc_local, fftw_complex *xi_arr_local)
+extern void set_random_field(PS_Params *ps_params,  ptrdiff_t alloc_local, fftw_complex *xi_arr_local)
 {
 	int i;
 
@@ -20,7 +20,7 @@ extern void set_random_field(int global_seed, PS_Params *ps_params,  ptrdiff_t a
 	world = MPI_COMM_WORLD;
 
 	rand_generator = 0;
-	std::mt19937 eng(global_seed);
+	std::mt19937 eng(ps_params->seed);
 	float mean = 0.;
 	float variance = pow(ps_params->Ng, ps_params->ndims);
 	float stddev = sqrt(variance);
@@ -121,7 +121,7 @@ extern void set_random_field(int global_seed, PS_Params *ps_params,  ptrdiff_t a
 }
 
 
-extern void set_real2D_random_field(int global_seed, PS_Params *ps_params,  ptrdiff_t local_n0, ptrdiff_t local_n1, double *xi_arr_local)
+extern void set_real2D_random_field(PS_Params *ps_params,  ptrdiff_t local_n0, ptrdiff_t local_n1, double *xi_arr_local)
 {
     int i, j, r, indx;
 	int alloc_local;
@@ -138,8 +138,8 @@ extern void set_real2D_random_field(int global_seed, PS_Params *ps_params,  ptrd
     world = MPI_COMM_WORLD;
 
     rand_generator = 0;
-    std::mt19937 eng(global_seed);
-    float mean = 0.;
+    std::mt19937 eng(ps_params->seed);
+	float mean = 0.;
     float variance = pow(ps_params->Ng, ps_params->ndims);
     float stddev = sqrt(variance);
     std::normal_distribution<> normal_dist(mean, stddev);
@@ -248,7 +248,7 @@ extern void set_real2D_random_field(int global_seed, PS_Params *ps_params,  ptrd
 
 
 
-extern void set_real3D_random_field(int global_seed, PS_Params *ps_params,  ptrdiff_t local_n0, ptrdiff_t local_n1, ptrdiff_t  local_n2, double *xi_arr_local)
+extern void set_real3D_random_field(PS_Params *ps_params,  ptrdiff_t local_n0, ptrdiff_t local_n1, ptrdiff_t  local_n2, double *xi_arr_local)
 {
     int i, j, k, r, indx;
     int alloc_local;
@@ -265,8 +265,8 @@ extern void set_real3D_random_field(int global_seed, PS_Params *ps_params,  ptrd
     world = MPI_COMM_WORLD;
 
     rand_generator = 0;
-    std::mt19937 eng(global_seed);
-    float mean = 0.;
+    std::mt19937 eng(ps_params->seed);
+	float mean = 0.;
     float variance = pow(ps_params->Ng, ps_params->ndims);
     float stddev = sqrt(variance);
     std::normal_distribution<> normal_dist(mean, stddev);

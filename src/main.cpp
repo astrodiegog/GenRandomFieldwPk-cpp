@@ -36,8 +36,10 @@ int main(int argc, char **argv)
     hid_t grp_1D_id, grp_2D_id, grp_3D_id;
 	herr_t status;
 
-	// Declare global seed
-	std::uint_fast32_t global_seed = 123456;
+	// Declare info for P(k) sanity checks
+	double kFund, kNyq, kmax;
+	int mags;
+
 	printf("waddup !\n");
 
 	// Call MPI routines & set nprocs and nprocID
@@ -65,19 +67,18 @@ int main(int argc, char **argv)
 
     // Create & populate ps_params
     Parse_Params(param_file, &ps_params);
-	printf("--- Rank %d : Creating a %d-D gaussian random field with %d cells along each dimension with length %.4f Mpc/h \n", 
-				procID, ps_params.ndims, ps_params.Ng, ps_params.Lbox);
+	printf("--- Rank %d : Creating a %d-D gaussian random field with %d cells along each dimension with length %.4f Mpc/h using seed %ld \n", 
+				procID, ps_params.ndims, ps_params.Ng, ps_params.Lbox, ps_params.seed);
 
 	// Make sure we're gucci, aka make sure ks is in range
-	double kFund = 2. * M_PI / ps_params.Lbox;
-	double kNyq = kFund * ps_params.Ng / 2.;
-	double kmax = sqrt(ps_params.ndims) * kNyq;
+	kFund = 2. * M_PI / ps_params.Lbox;
+	kNyq = kFund * ps_params.Ng / 2.;
+	kmax = sqrt(ps_params.ndims) * kNyq;
 	if ( (ps_params.ks < kFund) || (kNyq < ps_params.ks) ) {
 		fprintf(stderr, "--- Rank %d : k-mode ks = %.4e defining value of As is outside range between (kFund,kNyq) = (%.4e , %.4e) \n ", procID, ps_params.ks, kFund, kNyq);
 		return 0;
 	}
 
-	int mags;
 	if ( fabs(ps_params.ns) > 32. / (log10(kmax / kFund)) ) {
 		mags = (int) fabs(ps_params.ns) * (log10(kmax / kFund));
 		fprintf(stderr, "--- Rank %d : spanning >%d orders of magnitude, expect round-off error \n ", procID, mags);
@@ -98,19 +99,19 @@ int main(int argc, char **argv)
 	if (ps_params.ndims == 1){
 		// Create group for 1D
 		grp_1D_id = H5Gcreate(file_id, "/OneDimension", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-        run_one_dimension(global_seed, grp_1D_id, &ps_params);
+        run_one_dimension(grp_1D_id, &ps_params);
 		status = H5Gclose(grp_1D_id);
     }
 	else if (ps_params.ndims == 2) {
 		// Create group for 2D
 		grp_2D_id = H5Gcreate(file_id, "/TwoDimension", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-		run_two_dimension(global_seed, grp_2D_id, &ps_params);
+		run_two_dimension(grp_2D_id, &ps_params);
 		status = H5Gclose(grp_2D_id);
 	}
 	else if (ps_params.ndims == 3) {
 		// Create group for 3D
 		grp_3D_id = H5Gcreate(file_id, "/ThreeDimension", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-		run_three_dimension(global_seed, grp_3D_id, &ps_params);
+		run_three_dimension(grp_3D_id, &ps_params);
 		status = H5Gclose(grp_3D_id);
 	}
 

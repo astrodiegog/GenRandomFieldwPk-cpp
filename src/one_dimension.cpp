@@ -2,7 +2,7 @@
 #include "params.h"
 #include "generate_random_field.h"
 
-extern void run_one_dimension(int global_seed, hid_t grp_1D_id, PS_Params *ps_params)
+extern void run_one_dimension(hid_t grp_1D_id, PS_Params *ps_params)
 {
 	// Declare array of dimensions for datasets
     hsize_t dims1D_c[1];
@@ -113,7 +113,7 @@ extern void run_one_dimension(int global_seed, hid_t grp_1D_id, PS_Params *ps_pa
 	Write_HDF5_dataset(grp_1D_id, "Pk_input_local", dataspace1D_id_local_in_c_FFT, &Pk_input_local[0]);
 
 	// Step 1 : Create xi - random field
-	set_random_field(global_seed, ps_params, alloc_local_FFT, &xi_local[0]);
+	set_random_field(ps_params, alloc_local_FFT, &xi_local[0]);
 
 	// Write xi - random field
 	Write_FFTWarr_1Dgroup(grp_1D_id, "xi_local", dataspace1D_id_local_in_c_FFT, &xi_local[0], local_ni_FFT);

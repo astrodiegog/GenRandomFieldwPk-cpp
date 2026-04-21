@@ -11,6 +11,9 @@ extern void Parse_Param(char *key, char *value, struct PS_Params *ps_params)
 	if (!strcmp(key, "ndims")){
 		ps_params->ndims = atoi(value);
 	}
+	else if (!strcmp(key, "seed")) {
+		ps_params->seed = atoi(value);
+	}
     else if (!strcmp(key, "Lbox")) {
         ps_params->Lbox = (double) atof(value);
     }
