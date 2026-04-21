@@ -26,14 +26,17 @@ int main(int argc, char **argv)
     struct timeval t_start, t_end;
     double time_elapsed_us;
 
-
 	// Declare info for HDF5 file
 	std::string FileName_prefix = "FFTWFun_out.h5.";
 	std::string FileName_appendix, FileName;
 	const char *FileName_C;
 
     hid_t file_id;
-    hid_t grp_1D_id, grp_2D_id, grp_3D_id;
+    hid_t grp_1D_id, grp_2D_id, grp_3D_id, attrs1D_id;
+	int Rank1D = 1;
+	hsize_t attrs1D[Rank1D];
+	int int_data[Rank1D];
+    double double_data[Rank1D];
 	herr_t status;
 
 	// Declare info for P(k) sanity checks
@@ -93,6 +96,31 @@ int main(int argc, char **argv)
 	FileName_C = FileName.c_str();
 	printf("--- Rank %d : Creating file %s --- \n", procID, FileName_C);
     file_id = H5Fcreate(FileName_C, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+
+	// Save param & kmode info
+	attrs1D[0] = 1;
+	attrs1D_id = H5Screate_simple(Rank1D, attrs1D, NULL);
+	int_data[0] = ps_params.Ng;
+    Write_HDF5_int_attribute(file_id, "Ng", attrs1D_id, &int_data[0]);
+	int_data[0] = ps_params.ndims;
+    Write_HDF5_int_attribute(file_id, "ndims", attrs1D_id, &int_data[0]);
+	int_data[0] = ps_params.seed;
+    Write_HDF5_int_attribute(file_id, "seed", attrs1D_id, &int_data[0]);
+	double_data[0] = ps_params.As;
+    Write_HDF5_double_attribute(file_id, "As", attrs1D_id, &double_data[0]);
+	double_data[0] = ps_params.ks;
+    Write_HDF5_double_attribute(file_id, "ks", attrs1D_id, &double_data[0]);
+	double_data[0] = ps_params.ns;
+    Write_HDF5_double_attribute(file_id, "ns", attrs1D_id, &double_data[0]);
+	double_data[0] = ps_params.Lbox;
+    Write_HDF5_double_attribute(file_id, "Lbox", attrs1D_id, &double_data[0]);
+	double_data[0] = kFund;
+    Write_HDF5_double_attribute(file_id, "kFund", attrs1D_id, &double_data[0]);
+	double_data[0] = kNyq;
+    Write_HDF5_double_attribute(file_id, "kNyq", attrs1D_id, &double_data[0]);
+	double_data[0] = kmax;
+    Write_HDF5_double_attribute(file_id, "kmax", attrs1D_id, &double_data[0]);
+
 
 	printf("--- Rank %d : Creating a %d-D gaussian random field with %d cells along each dimension with length %.4f Mpc/h \n",
                 procID, ps_params.ndims, ps_params.Ng, ps_params.Lbox);
