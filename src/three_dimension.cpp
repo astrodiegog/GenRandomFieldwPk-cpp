@@ -301,7 +301,7 @@ extern void run_three_dimension(int global_seed, hid_t grp_3D_id, PS_Params *ps_
     printf("--- Rank %d: Elapsed time to take iFFT: %.6f secs \n", procID, time_elapsed_us * 1e-6);
     gettimeofday(&t_start, NULL);
 
-	printf("--- Rank %d : Normalizing delta_x by Nx*Ny*Nz= %d \n", procID, N0*N1*N2);
+	printf("--- Rank %d : Normalizing delta_x by Nx*Ny*Nz= %ld \n", procID, N0*N1*N2);
 	for (i = 0; i < local_n_r ; i++) {
 	 	for (j = 0; j < N1 ; j++) {
  			for (k = 0; k < N2; k++) {
