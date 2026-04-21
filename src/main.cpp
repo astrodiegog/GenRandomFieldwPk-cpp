@@ -21,11 +21,10 @@ int main(int argc, char **argv)
 
 	char *param_file;
     struct PS_Params ps_params;
-
-	// Call MPI routines & set nprocs and nprocID
-    MPI_Init(&argc, &argv);
-    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
-    MPI_Comm_rank(MPI_COMM_WORLD, &procID);
+	
+	// Declare time info
+    struct timeval t_start, t_end;
+    double time_elapsed_us;
 
 
 	// Declare info for HDF5 file
@@ -37,8 +36,17 @@ int main(int argc, char **argv)
     hid_t grp_1D_id, grp_2D_id, grp_3D_id;
 	herr_t status;
 
+	// Declare global seed
 	std::uint_fast32_t global_seed = 123456;
 	printf("waddup !\n");
+
+	// Call MPI routines & set nprocs and nprocID
+	MPI_Init(&argc, &argv);
+    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+    MPI_Comm_rank(MPI_COMM_WORLD, &procID);
+
+	// Start time tracking
+	gettimeofday(&t_start, NULL);
 
 #ifdef HOWDY
     printf(" --- HOWDY ! --- \n");
@@ -108,6 +116,11 @@ int main(int argc, char **argv)
 
 	// Close HDF5 info
     status = H5Fclose(file_id);
+
+	gettimeofday(&t_end, NULL);
+    time_elapsed_us = (t_end.tv_sec - t_start.tv_sec) * 1.e6;
+    time_elapsed_us += t_end.tv_usec - t_start.tv_usec;
+    printf("--- Rank %d: Total elapsed time : %.6f secs \n", procID, time_elapsed_us * 1e-6);
 
 	MPI_Finalize();
 

@@ -1,16 +1,20 @@
-#include "two_dimension.h"
+#include <sys/time.h>
+
+#include "three_dimension.h"
 #include "params.h"
 #include "generate_random_field.h"
 
 
-// N1_r2c --> N2_r2c
-// N1_r_buff --> N2_r_buff
 extern void run_three_dimension(int global_seed, hid_t grp_3D_id, PS_Params *ps_params)
 {
 	// Declare array of dimensions for datasets
     int Rank = 3;
     int Rank_binned = 1;
 	hsize_t dims3D_r[Rank], dims3D_r_input[Rank], dims_binned[Rank_binned];
+
+	// Declare time info
+	struct timeval t_start, t_end;
+	double time_elapsed_us;
 
 	// Declare dataspaced for datasets
 	hid_t dataspace3D_id_local_r, dataspace3D_id_local_r_input, dataspace_id_binned;
@@ -40,6 +44,9 @@ extern void run_three_dimension(int global_seed, hid_t grp_3D_id, PS_Params *ps_
 	long int *counts_local, *counts_global;
 	double *Pk_bin_local_sum, *Pk_bin_local_avg, *Pk_bin_global;
 	double *k_bin_local_sum, *k_bin_local_avg, *k_bin_global;
+
+	// Start time tracking
+	gettimeofday(&t_start, NULL);
 
 	// Grab the amount of data allocated by local_size routines
     N0 = ps_params->Ng;
@@ -121,6 +128,12 @@ extern void run_three_dimension(int global_seed, hid_t grp_3D_id, PS_Params *ps_
 		k_bin_local_sum[i] = 0.;
     }
 
+	gettimeofday(&t_end, NULL);
+    time_elapsed_us = (t_end.tv_sec - t_start.tv_sec) * 1.e6;
+    time_elapsed_us += t_end.tv_usec - t_start.tv_usec;
+    printf("--- Rank %d: Elapsed time to create plans and allocate memory : %.6f secs \n", procID, time_elapsed_us * 1e-6);
+	gettimeofday(&t_start, NULL);
+
 	// Fill in k, P(k), T^2(k) info
 	dx = ps_params->Lbox / ps_params->Ng;
 	dy = ps_params->Lbox / ps_params->Ng;
@@ -131,6 +144,8 @@ extern void run_three_dimension(int global_seed, hid_t grp_3D_id, PS_Params *ps_
 
 	l_ks = log10(ps_params->ks);
 	l_As = log10(ps_params->As);
+
+	printf("--- Rank %d : Calculating local kx,ky,kz,kmag, P(kx,ky,kz) \n", procID);
 
 	for (i = 0; i < local_n_r; i++) {
 		for (j = 0; j < N1; j++) {
@@ -180,30 +195,60 @@ extern void run_three_dimension(int global_seed, hid_t grp_3D_id, PS_Params *ps_
 				}
 
 				Tk2_input_local[indx] = pow((2. * M_PI / ps_params->Lbox), ps_params->ndims) * Pk_input_local[indx];
-				//printf("--- Rank %d : T^2(k=%.4e)=%.4e \n", procID, kmag, Tk2_input_local[indx]);			
 			}
 		}
 	}
 
+	gettimeofday(&t_end, NULL);
+    time_elapsed_us = (t_end.tv_sec - t_start.tv_sec) * 1.e6;
+    time_elapsed_us += t_end.tv_usec - t_start.tv_usec;
+	printf("--- Rank %d: Elapsed time to calculate local info : %.6f secs \n", procID, time_elapsed_us * 1e-6);
+    gettimeofday(&t_start, NULL);
 
 
 	// Write k , P(k) array
+	printf("--- Rank %d : Writing local kx,ky,kz,kmag, P(kx,ky,kz) \n", procID);
 	Write_HDF5_dataset(grp_3D_id, "kx_local", dataspace3D_id_local_r, &kx_local[0]);
 	Write_HDF5_dataset(grp_3D_id, "ky_local", dataspace3D_id_local_r, &ky_local[0]);
 	Write_HDF5_dataset(grp_3D_id, "kz_local", dataspace3D_id_local_r, &kz_local[0]);
 	Write_HDF5_dataset(grp_3D_id, "kmag_local", dataspace3D_id_local_r, &kmag_local[0]);
 	Write_HDF5_dataset(grp_3D_id, "Pk_input_local", dataspace3D_id_local_r, &Pk_input_local[0]);
 
+	gettimeofday(&t_end, NULL);
+    time_elapsed_us = (t_end.tv_sec - t_start.tv_sec) * 1.e6;
+    time_elapsed_us += t_end.tv_usec - t_start.tv_usec;
+    printf("--- Rank %d: Elapsed time to write local info : %.6f secs \n", procID, time_elapsed_us * 1e-6);
+    gettimeofday(&t_start, NULL);
 
 	// Step 1 : Create xi - random field
 	printf("--- Rank %d : Requesting %ld random numbers \n", procID, local_n_r * N1 * N2_r2c);
 	set_real3D_random_field(global_seed, ps_params, local_n_r, N1, N2, &xi_local[0]);
 
+	gettimeofday(&t_end, NULL);
+    time_elapsed_us = (t_end.tv_sec - t_start.tv_sec) * 1.e6;
+    time_elapsed_us += t_end.tv_usec - t_start.tv_usec;
+    printf("--- Rank %d: Elapsed time to generate random field : %.6f secs \n", procID, time_elapsed_us * 1e-6);
+    gettimeofday(&t_start, NULL);
+
 	// Write xi - random field
+	printf("--- Rank %d : Writing local random overdensity field \n", procID);
 	Write_HDF5_dataset(grp_3D_id, "xi_local", dataspace3D_id_local_r_input, &xi_local[0]);
 
+	gettimeofday(&t_end, NULL);
+    time_elapsed_us = (t_end.tv_sec - t_start.tv_sec) * 1.e6;
+    time_elapsed_us += t_end.tv_usec - t_start.tv_usec;
+    printf("--- Rank %d: Elapsed time to write random field : %.6f secs \n", procID, time_elapsed_us * 1e-6);
+    gettimeofday(&t_start, NULL);
+
 	// Step 2 : Take FFT of xi --> populate xi_k & normalize
+	printf("--- Rank %d : Taking FFT of local random overdensity field to get xi(k)\n", procID);
 	fftw_execute(plan_FFT_r2c);
+	gettimeofday(&t_end, NULL);
+    time_elapsed_us = (t_end.tv_sec - t_start.tv_sec) * 1.e6;
+    time_elapsed_us += t_end.tv_usec - t_start.tv_usec;
+    printf("--- Rank %d: Elapsed time to take FFT : %.6f secs \n", procID, time_elapsed_us * 1e-6);
+    gettimeofday(&t_start, NULL);
+
 	variance = pow(ps_params->Ng, ps_params->ndims);
 	printf("--- Rank %d : Normalizing xi(k) with variance %.0f \n", procID, variance);
 	for (i = 0; i < local_n_r; i++) {
@@ -216,9 +261,16 @@ extern void run_three_dimension(int global_seed, hid_t grp_3D_id, PS_Params *ps_
 		}
 	}
 
+	printf("--- Rank %d : Writing local random overdensity field in k-space \n", procID);
 	Write_FFTWarr_3Dgroup(grp_3D_id, "xi_k_local", dataspace3D_id_local_r, &xi_k_r2c_local[0], local_n_r, N1, N2_r2c);
 
-	
+	gettimeofday(&t_end, NULL);
+    time_elapsed_us = (t_end.tv_sec - t_start.tv_sec) * 1.e6;
+    time_elapsed_us += t_end.tv_usec - t_start.tv_usec;
+    printf("--- Rank %d: Elapsed time to normalize and write xi(k) : %.6f secs \n", procID, time_elapsed_us * 1e-6);
+    gettimeofday(&t_start, NULL);
+
+	printf("--- Rank %d : Apply dimensionless Transfer Function \n", procID);
 	// Step 3 : Apply Transfer Function
 	for (i = 0; i < local_n_r; i++) {
         for (j = 0; j < N1; j++) {
@@ -231,11 +283,25 @@ extern void run_three_dimension(int global_seed, hid_t grp_3D_id, PS_Params *ps_
     }
 	
 	// Write delta_k - power spectrum applied to noise in k-space
+	printf("--- Rank %d : Writing local delta_k \n", procID);
 	Write_FFTWarr_3Dgroup(grp_3D_id, "deltak_local", dataspace3D_id_local_r, &delta_k_r2c_local[0], local_n_r, N1, N2_r2c);
 
-	// Step 4 : Take iFFT of delta_k --> evaluate delta(m), scale by (1/N)
-	fftw_execute(plan_iFFT_c2r);
+	gettimeofday(&t_end, NULL);
+    time_elapsed_us = (t_end.tv_sec - t_start.tv_sec) * 1.e6;
+    time_elapsed_us += t_end.tv_usec - t_start.tv_usec;
+    printf("--- Rank %d: Elapsed time to apply P(k) and write delta_k : %.6f secs \n", procID, time_elapsed_us * 1e-6);
+    gettimeofday(&t_start, NULL);
 
+	// Step 4 : Take iFFT of delta_k --> evaluate delta(m), scale by (1/N)
+	printf("--- Rank %d : Taking iFFT of delta_k to get delta_x \n", procID);
+	fftw_execute(plan_iFFT_c2r);
+	gettimeofday(&t_end, NULL);
+    time_elapsed_us = (t_end.tv_sec - t_start.tv_sec) * 1.e6;
+    time_elapsed_us += t_end.tv_usec - t_start.tv_usec;
+    printf("--- Rank %d: Elapsed time to take iFFT: %.6f secs \n", procID, time_elapsed_us * 1e-6);
+    gettimeofday(&t_start, NULL);
+
+	printf("--- Rank %d : Normalizing delta_x by Nx*Ny*Nz= %d \n", procID, N0*N1*N2);
 	for (i = 0; i < local_n_r ; i++) {
 	 	for (j = 0; j < N1 ; j++) {
  			for (k = 0; k < N2; k++) {
@@ -245,12 +311,24 @@ extern void run_three_dimension(int global_seed, hid_t grp_3D_id, PS_Params *ps_
 		}
 	}
 
+	printf("--- Rank %d : Writing local delta_x \n", procID);
 	// Write delta_x - power spectrum applied to noise
 	Write_HDF5_dataset(grp_3D_id, "deltax_local", dataspace3D_id_local_r_input, &delta_x_c2r_local[0]);
 
-	
+	gettimeofday(&t_end, NULL);
+    time_elapsed_us = (t_end.tv_sec - t_start.tv_sec) * 1.e6;
+    time_elapsed_us += t_end.tv_usec - t_start.tv_usec;
+    printf("--- Rank %d: Elapsed time to normalize and write delta_x : %.6f secs \n", procID, time_elapsed_us * 1e-6);
+    gettimeofday(&t_start, NULL);
+
 	// Reconstruct P(k) from delta_x
+	printf("--- Rank %d : Taking FFT of delta_x to calculate P(kx,ky,kz) \n", procID);
 	fftw_execute(plan_FFT_calc_r2c);
+	gettimeofday(&t_end, NULL);
+    time_elapsed_us = (t_end.tv_sec - t_start.tv_sec) * 1.e6;
+    time_elapsed_us += t_end.tv_usec - t_start.tv_usec;
+    printf("--- Rank %d: Elapsed time to take FFT : %.6f secs \n", procID, time_elapsed_us * 1e-6);
+    gettimeofday(&t_start, NULL);
 	double Tk2_calc;
 	for (i = 0; i < local_n_r; i++) {
         for (j = 0; j < N1; j++) {
@@ -262,14 +340,18 @@ extern void run_three_dimension(int global_seed, hid_t grp_3D_id, PS_Params *ps_
         }
     }
 
-
 	// Write P(k)
+	printf("--- Rank %d : Writing local P(kx,ky,kz) \n", procID);
 	Write_HDF5_dataset(grp_3D_id, "Pk_calc_local", dataspace3D_id_local_r, &Pk_calc_local[0]);
 
-	// Bin P(k) by fundamental mode (ikbins_local)
-	//counts_global \ Pk_bin_global \ k_bin_global
-	printf("--- Rank %d : binning P(k) into %d bins of deltak = kfund = %.4e \n", procID, nkbins, (2. * M_PI) / ps_params->Lbox);
+	gettimeofday(&t_end, NULL);
+    time_elapsed_us = (t_end.tv_sec - t_start.tv_sec) * 1.e6;
+    time_elapsed_us += t_end.tv_usec - t_start.tv_usec;
+    printf("--- Rank %d: Elapsed time to calculate and write local P(k) : %.6f secs \n", procID, time_elapsed_us * 1e-6);
+    gettimeofday(&t_start, NULL);
 
+	// Bin P(k) by fundamental mode (ikbins_local)
+	printf("--- Rank %d : Binning P(k) into %d bins of deltak = kfund = %.4e \n", procID, nkbins, (2. * M_PI) / ps_params->Lbox);
 
 	for (i = 0; i < local_n_r; i++) {
         for (j = 0; j < N1; j++) {
@@ -302,7 +384,14 @@ extern void run_three_dimension(int global_seed, hid_t grp_3D_id, PS_Params *ps_
         }
     }
 
+	gettimeofday(&t_end, NULL);
+    time_elapsed_us = (t_end.tv_sec - t_start.tv_sec) * 1.e6;
+    time_elapsed_us += t_end.tv_usec - t_start.tv_usec;
+    printf("--- Rank %d: Elapsed time to bin local info : %.6f secs \n", procID, time_elapsed_us * 1e-6);
+    gettimeofday(&t_start, NULL);
 
+
+	printf("--- Rank %d : Calculating binned local P(k) \n", procID);
 	// Define averaged binned k, P(k) values in this process
 	for (i = 0; i < nkbins; i++) {
 		if (counts_local[i] == 0) { // Avoid dividing by zero
@@ -317,6 +406,7 @@ extern void run_three_dimension(int global_seed, hid_t grp_3D_id, PS_Params *ps_
 
 
 	// Write local bin info
+	printf("--- Rank %d : Writing local ikbins, counts, k,P(k) \n", procID);
 	Write_HDF5_longint_dataset(grp_3D_id, "ikbin_local", dataspace3D_id_local_r, &ikbin_local[0]);
 	Write_HDF5_longint_dataset(grp_3D_id, "counts_local", dataspace_id_binned, &counts_local[0]);
 	Write_HDF5_dataset(grp_3D_id, "Pk_bin_local", dataspace_id_binned, &Pk_bin_local_avg[0]);
@@ -328,7 +418,8 @@ extern void run_three_dimension(int global_seed, hid_t grp_3D_id, PS_Params *ps_
 	MPI_Allreduce(&counts_local[0], &counts_global[0], nkbins, MPI_LONG, MPI_SUM, MPI_COMM_WORLD);
 	MPI_Allreduce(&k_bin_local_sum[0], &k_bin_global[0], nkbins, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 	MPI_Allreduce(&Pk_bin_local_sum[0], &Pk_bin_global[0], nkbins, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-	
+
+	printf("--- Rank %d : Calculating binned global P(k) \n", procID);	
 	for (i = 0; i < nkbins; i++) {
         if (counts_global[i] != 0) { // Avoid dividing by zero
             k_bin_global[i] /= counts_global[i];
@@ -336,6 +427,7 @@ extern void run_three_dimension(int global_seed, hid_t grp_3D_id, PS_Params *ps_
         }
     }
 
+	printf("--- Rank %d : Writing global counts, k,P(k) \n", procID);
 	Write_HDF5_longint_dataset(grp_3D_id, "counts_global", dataspace_id_binned, &counts_global[0]);
 	Write_HDF5_dataset(grp_3D_id, "k_bin_global", dataspace_id_binned, &k_bin_global[0]);
 	Write_HDF5_dataset(grp_3D_id, "Pk_bin_global", dataspace_id_binned, &Pk_bin_global[0]);
