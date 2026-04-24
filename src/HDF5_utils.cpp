@@ -1,6 +1,6 @@
 #include "HDF5_utils.h"
 
-extern void Write_HDF5_int_attribute(hid_t grp_id, char *arr_name, hid_t dataspace_id, int *attr_int_arr)
+extern void Write_HDF5_int_attribute(hid_t grp_id, const char *arr_name, hid_t dataspace_id, int *attr_int_arr)
 {
     hid_t attr_id;
     herr_t status;
@@ -13,7 +13,7 @@ extern void Write_HDF5_int_attribute(hid_t grp_id, char *arr_name, hid_t dataspa
 }
 
 
-extern void Write_HDF5_double_attribute(hid_t grp_id, char *arr_name, hid_t dataspace_id, double *attr_double_arr)
+extern void Write_HDF5_double_attribute(hid_t grp_id, const char *arr_name, hid_t dataspace_id, double *attr_double_arr)
 {
     hid_t attr_id;
     herr_t status;
@@ -25,7 +25,7 @@ extern void Write_HDF5_double_attribute(hid_t grp_id, char *arr_name, hid_t data
     return;
 }
 
-extern void Write_HDF5_longint_dataset(hid_t grp_id, char *arr_name, hid_t dataspace_id, long int *data_arr)
+extern void Write_HDF5_longint_dataset(hid_t grp_id, const char *arr_name, hid_t dataspace_id, long int *data_arr)
 {
     hid_t dataset_id;
     herr_t status;
@@ -37,7 +37,7 @@ extern void Write_HDF5_longint_dataset(hid_t grp_id, char *arr_name, hid_t datas
     return;
 }
 
-extern void Write_HDF5_dataset(hid_t grp_id, char *arr_name, hid_t dataspace_id, double *data_arr)
+extern void Write_HDF5_dataset(hid_t grp_id, const char *arr_name, hid_t dataspace_id, double *data_arr)
 {
 	hid_t dataset_id;
     herr_t status;
@@ -50,7 +50,7 @@ extern void Write_HDF5_dataset(hid_t grp_id, char *arr_name, hid_t dataspace_id,
 }
 
 
-extern void Write_FFTWarr_1Dgroup(hid_t grp_id, char *arr_prefix, hid_t dataspace_id, fftw_complex *FFTW_arr, int Nx)
+extern void Write_FFTWarr_1Dgroup(hid_t grp_id, const char *arr_prefix, hid_t dataspace_id, fftw_complex *FFTW_arr, int Nx)
 {
 	int i;
     double FFTW_arr_Real[Nx], FFTW_arr_Imag[Nx];
@@ -75,7 +75,7 @@ extern void Write_FFTWarr_1Dgroup(hid_t grp_id, char *arr_prefix, hid_t dataspac
 }
 
 
-extern void Write_FFTWarr_2Dgroup(hid_t grp_id, char *arr_prefix, hid_t dataspace_id, fftw_complex *FFTW_arr, int Nx, int Ny)
+extern void Write_FFTWarr_2Dgroup(hid_t grp_id, const char *arr_prefix, hid_t dataspace_id, fftw_complex *FFTW_arr, int Nx, int Ny)
 {
     int i, j, indx;
     double FFTW_arr_Real[Nx * Ny], FFTW_arr_Imag[Nx * Ny];
@@ -103,7 +103,7 @@ extern void Write_FFTWarr_2Dgroup(hid_t grp_id, char *arr_prefix, hid_t dataspac
     return;
 }
 
-extern void Write_FFTWarr_3Dgroup(hid_t grp_id, char *arr_prefix, hid_t dataspace_id, fftw_complex *FFTW_arr, int Nx, int Ny, int Nz)
+extern void Write_FFTWarr_3Dgroup(hid_t grp_id, const char *arr_prefix, hid_t dataspace_id, fftw_complex *FFTW_arr, int Nx, int Ny, int Nz)
 {
     int i, j, k, indx;
     double FFTW_arr_Real[Nx * Ny * Nz], FFTW_arr_Imag[Nx * Ny * Nz];
