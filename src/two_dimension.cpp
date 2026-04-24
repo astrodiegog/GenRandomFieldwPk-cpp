@@ -12,6 +12,7 @@ extern void run_two_dimension(hid_t grp_2D_id, PS_Params *ps_params)
 
 	// Declare dataspaced for datasets
 	hid_t dataspace2D_id_local_r, dataspace2D_id_local_r_input, dataspace_id_binned;
+	herr_t status;
 
 	// Power spectra values
 	double dx, dy, kx2, ky2, variance;
@@ -312,6 +313,11 @@ extern void run_two_dimension(hid_t grp_2D_id, PS_Params *ps_params)
     free(k_bin_local_sum);
     free(k_bin_local_avg);
     free(k_bin_global);
+
+	// Close dataspaces
+    status = H5Sclose(dataspace2D_id_local_r);
+    status = H5Sclose(dataspace2D_id_local_r_input);
+    status = H5Sclose(dataspace_id_binned);	
 }
 
 

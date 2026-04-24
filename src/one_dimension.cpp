@@ -7,6 +7,7 @@ extern void run_one_dimension(hid_t grp_1D_id, PS_Params *ps_params)
 	// Declare array of dimensions for datasets
     hsize_t dims1D_c[1];
     int Rank = 1;
+	herr_t status;
 
 	// Power spectr values
 	double Lbox = ps_params->Lbox;
@@ -52,8 +53,6 @@ extern void run_one_dimension(hid_t grp_1D_id, PS_Params *ps_params)
     dataspace1D_id_local_in_c_iFFT = H5Screate_simple(Rank, dims1D_c, NULL);
     dims1D_c[0] = local_no_iFFT;
     dataspace1D_id_local_out_c_iFFT = H5Screate_simple(Rank, dims1D_c, NULL);
-
-
 	// Allocate memory
     Pk_input_local = (double *) fftw_malloc(sizeof(double) * alloc_local_FFT);
 	Tk2_input_local = (double *) fftw_malloc(sizeof(double) * alloc_local_FFT);
@@ -175,6 +174,11 @@ extern void run_one_dimension(hid_t grp_1D_id, PS_Params *ps_params)
     fftw_free(delta_x_c2c_local);
     fftw_free(Pk_calc_local);
 
+	// Close dataspaces
+	status = H5Sclose(dataspace1D_id_local_in_c_FFT);
+    status = H5Sclose(dataspace1D_id_local_out_c_FFT);
+    status = H5Sclose(dataspace1D_id_local_in_c_iFFT);
+    status = H5Sclose(dataspace1D_id_local_out_c_iFFT);
 
 }
 

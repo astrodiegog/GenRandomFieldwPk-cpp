@@ -460,6 +460,11 @@ extern void run_three_dimension(hid_t grp_3D_id, PS_Params *ps_params)
     free(k_bin_local_sum);
     free(k_bin_local_avg);
     free(k_bin_global);	
+
+	// Close dataspaces
+    status = H5Sclose(dataspace3D_id_local_r);
+    status = H5Sclose(dataspace3D_id_local_r_input);
+    status = H5Sclose(dataspace_id_binned);	
 }
 
 
