@@ -164,6 +164,18 @@ extern void run_one_dimension(hid_t grp_1D_id, PS_Params *ps_params)
 	fftw_destroy_plan(plan_iFFT_c2c);
     fftw_destroy_plan(plan_FFT_calc_c2c);
 
+	// Free memory
+	free(Pk_input_local);
+    free(Tk2_input_local);
+    fftw_free(xi_local);
+    free(kx_local);
+    fftw_free(xi_k_c2c_local);
+    fftw_free(delta_k_c2c_local);
+    fftw_free(delta_k_calc_c2c_local);
+    fftw_free(delta_x_c2c_local);
+    fftw_free(Pk_calc_local);
+
+
 }
 
 

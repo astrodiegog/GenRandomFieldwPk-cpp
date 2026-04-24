@@ -437,6 +437,29 @@ extern void run_three_dimension(hid_t grp_3D_id, PS_Params *ps_params)
     fftw_destroy_plan(plan_iFFT_c2r);
     fftw_destroy_plan(plan_FFT_calc_r2c);	
 
+	// Free memory
+    free(Pk_input_local);
+    free(Tk2_input_local);
+    free(xi_local);
+    free(kx_local);
+    free(ky_local);
+	free(kz_local);
+    free(kmag_local);
+    fftw_free(xi_k_r2c_local);
+    fftw_free(delta_k_r2c_local);
+    free(delta_x_c2r_local);
+    fftw_free(delta_k_calc_r2c_local);
+    free(Pk_calc_local);
+
+    free(ikbin_local);
+    free(counts_local);
+    free(counts_global);
+    free(Pk_bin_local_sum);
+    free(Pk_bin_local_avg);
+    free(Pk_bin_global);
+    free(k_bin_local_sum);
+    free(k_bin_local_avg);
+    free(k_bin_global);	
 }
 
 
