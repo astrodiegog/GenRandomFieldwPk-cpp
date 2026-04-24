@@ -159,6 +159,10 @@ extern void run_one_dimension(hid_t grp_1D_id, PS_Params *ps_params)
 	// Write P(k)
 	Write_HDF5_dataset(grp_1D_id, "Pk_calc_local", dataspace1D_id_local_out_c_FFT, &Pk_calc_local[0]);
 	
+	// Destroy plans
+	fftw_destroy_plan(plan_FFT_c2c);
+	fftw_destroy_plan(plan_iFFT_c2c);
+    fftw_destroy_plan(plan_FFT_calc_c2c);
 
 }
 

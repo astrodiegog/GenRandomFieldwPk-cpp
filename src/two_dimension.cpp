@@ -284,6 +284,11 @@ extern void run_two_dimension(hid_t grp_2D_id, PS_Params *ps_params)
 	Write_HDF5_longint_dataset(grp_2D_id, "counts_global", dataspace_id_binned, &counts_global[0]);
 	Write_HDF5_dataset(grp_2D_id, "k_bin_global", dataspace_id_binned, &k_bin_global[0]);
 	Write_HDF5_dataset(grp_2D_id, "Pk_bin_global", dataspace_id_binned, &Pk_bin_global[0]);
+
+	// Destroy plans
+	fftw_destroy_plan(plan_FFT_r2c);
+	fftw_destroy_plan(plan_iFFT_c2r); 
+	fftw_destroy_plan(plan_FFT_calc_r2c);
 }
 
 
